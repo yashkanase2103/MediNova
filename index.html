@@ -1,0 +1,2662 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MediNova — Smart Healthcare</title>
+  <meta name="description" content="Your smart healthcare companion for appointments, symptom checking, and health management" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg: #0b1220;
+      --card: rgba(255,255,255,0.05);
+      --txt: #e8eefc;
+      --muted: #9db2d7;
+      --primary: #6ce5e8;
+      --accent: #a29bfe;
+      --warning: #ffd166;
+      --success: #7cf7b0;
+      --danger: #ff6b6b;
+      --glass: rgba(255,255,255,0.08);
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    [data-theme="light"] {
+      --bg: #f7fbff;
+      --card: #ffffff;
+      --txt: #0a1630;
+      --muted: #3e5579;
+      --primary: #1aa6b7;
+      --accent: #5b63ff;
+      --warning: #cc8a00;
+      --success: #0f9d58;
+      --danger: #d93025;
+      --glass: rgba(255,255,255,0.8);
+      --shadow: 0 10px 30px rgba(10,22,48,.1);
+    }
+
+    * { box-sizing: border-box }
+    html, body { margin: 0; height: 100%; }
+    body {
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(1200px 800px at 80% -10%, #233a6f 0%, var(--bg) 50%), var(--bg);
+      color: var(--txt);
+      overflow-x: hidden;
+      transition: background 0.3s ease;
+    }
+
+    /* Auth Pages */
+    #auth-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .auth-card {
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 20px;
+      padding: 30px;
+      width: 100%;
+      max-width: 450px;
+      box-shadow: var(--shadow);
+    }
+    .auth-tabs {
+      display: flex;
+      margin-bottom: 20px;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+    }
+    .auth-tab {
+      padding: 12px 20px;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.3s;
+      font-weight: 600;
+    }
+    .auth-tab.active {
+      opacity: 1;
+      border-bottom: 2px solid var(--primary);
+    }
+    .auth-form {
+      display: none;
+    }
+    .auth-form.active {
+      display: block;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    .form-control {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.2);
+      background: rgba(255,255,255,.1);
+      color: var(--txt);
+      font-family: inherit;
+    }
+    .captcha-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .captcha-code {
+      font-size: 24px;
+      font-weight: bold;
+      letter-spacing: 5px;
+      padding: 8px 12px;
+      background: rgba(0,0,0,.2);
+      border-radius: 8px;
+      user-select: none;
+    }
+    .otp-container {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(36px, 1fr));
+      gap: clamp(6px, 2vw, 12px);
+      margin-bottom: 16px;
+    }
+    .otp-input {
+      text-align: center;
+      padding: clamp(8px, 1.5vw, 14px);
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.2);
+      background: rgba(255,255,255,.1);
+      color: var(--txt);
+      font-size: clamp(16px, 2.2vw, 20px);
+    }
+    .btn-block {
+      width: 100%;
+    }
+
+    /* Topbar */
+    .topbar {
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(10px);
+      background: linear-gradient(0deg, rgba(0,0,0,0.0), rgba(0,0,0,0.15)) , var(--glass);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 14px 20px; }
+    .row { display:flex; align-items:center; gap:16px; }
+    header.topbar .row[role="toolbar"] { gap: 10px; }
+    @media (min-width: 640px){ header.topbar .row[role="toolbar"] { gap: 14px; } }
+    @media (min-width: 960px){ header.topbar .row[role="toolbar"] { gap: 18px; } }
+    .brand { display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.5px; }
+    .brand svg { width:28px; height:28px }
+
+    /* Sidebar */
+    .sidebar { position: fixed; top: 0; left: 0; width: 220px; height: 100vh; padding: 14px 12px; box-sizing: border-box; background: #0b1220; border-right:1px solid rgba(255,255,255,.08); z-index: 60; }
+    .sidebar .logo { display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.5px; color: var(--txt); padding: 10px 8px; }
+    .side-nav { list-style: none; margin: 10px 0 0 0; padding: 0; display:flex; flex-direction: column; gap: 6px; }
+    .side-nav a { display:flex; align-items:center; gap:10px; padding: 10px 12px; border-radius: 12px; color: var(--txt); text-decoration: none; }
+    .side-nav a:hover { background: var(--card); }
+    /* Offset main content for sidebar */
+    header.topbar .wrap, main.wrap { margin-left: 220px; }
+    /* Hide old top navigation */
+    header.topbar nav { display: none; }
+
+    /* Nav */
+    nav { margin-left:auto; }
+    .menu { display:flex; gap: 10px; flex-wrap: wrap; }
+    .menu > li { list-style:none; position:relative; }
+    .menu > li > a, .menu > li > button {
+      padding:10px 14px; border-radius:12px; border:1px solid transparent; color:var(--txt); text-decoration:none; font-weight:600; letter-spacing:.2px;
+      background: transparent; cursor:pointer; display: flex; align-items: center; gap: 6px;
+    }
+    .menu > li > a:hover, .menu > li > button:hover { background: var(--card); border-color: rgba(255,255,255,.08); }
+
+    /* Dropdown */
+    .dropdown {
+      position:absolute; top: 46px; left:0; min-width: 260px;
+      background: #111a2e; border:1px solid rgba(255,255,255,.08); box-shadow: var(--shadow); border-radius: 16px; padding: 8px;
+      display:none; z-index: 100;
+    }
+    .menu > li:hover .dropdown { display:block; }
+    .dropdown a { display:flex; gap:12px; align-items:center; padding:10px; border-radius:12px; color:var(--txt); text-decoration:none; }
+    .dropdown a:hover { background: var(--card); }
+    .icon { width:20px; height:20px; opacity:.9 }
+    @keyframes sos-blink { 0%,100% { opacity:1 } 50% { opacity:.45 } }
+    header.topbar .btn.sos { position: fixed; right: 16px; top: 12px; margin-left:0; animation: sos-blink 1s infinite; z-index: 1001; }
+
+    /* Hero */
+    .hero { display:grid; grid-template-columns: 1.2fr 1fr; gap: 28px; align-items:center; padding: 64px 20px; }
+    .badge { display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; background: var(--glass); border:1px solid rgba(255,255,255,.08); font-size:12px; }
+    h1 { font-size: clamp(28px, 4vw, 54px); line-height:1.1; margin: 14px 0; }
+    .lead { color: var(--muted); max-width: 56ch; }
+    .cta { display:flex; gap:12px; margin-top:18px }
+    .btn { padding: 12px 16px; border-radius: 14px; border:1px solid transparent; font-weight:700; cursor:pointer; display: inline-flex; align-items: center; gap: 8px; }
+    .btn.primary { background: linear-gradient(135deg, var(--primary), var(--accent)); color:#061c40; }
+    .btn.ghost { background: transparent; color: var(--txt); border-color: rgba(255,255,255,.12); }
+
+    /* Pages */
+    .page { display:none; padding: 30px 20px 60px; }
+    .page.active { display:block; }
+
+    .grid { display:grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
+    .card { grid-column: span 12; padding:20px; border-radius: 18px; background: var(--glass); border:1px solid rgba(255,255,255,.08); box-shadow: var(--shadow); }
+    .card.clickable { cursor: pointer; }
+    @media (min-width: 820px) {
+      .card.span-6 { grid-column: span 6; }
+      .card.span-4 { grid-column: span 4; }
+      .card.span-8 { grid-column: span 8; }
+    }
+    .card h3 { margin: 8px 0 6px; display: flex; align-items: center; gap: 8px; }
+    .muted { color: var(--muted); font-size: 14px; }
+
+    /* Tables */
+    table { width:100%; border-collapse: collapse; }
+    th, td { text-align:left; padding:10px 12px; border-bottom:1px dashed rgba(255,255,255,.12); }
+
+    /* Footer */
+    footer { padding: 40px 20px; border-top:1px solid rgba(255,255,255,.08); color:var(--muted); text-align:center; }
+
+    /* Utilities */
+    .pill { padding:6px 10px; border-radius:999px; font-size:12px; display:inline-flex; gap:6px; align-items:center; }
+    .pill.ok { background: rgba(124,247,176,.15); color: var(--success); border:1px solid rgba(124,247,176,.35); }
+    .pill.warn { background: rgba(255,209,102,.15); color: var(--warning); border:1px solid rgba(255,209,102,.35); }
+    .pill.danger { background: rgba(255,107,107,.12); color: var(--danger); border:1px solid rgba(255,107,107,.35); }
+
+    /* Breathing animation */
+    @keyframes breathe {
+      0% { transform: scale(1); opacity:.8 }
+      50% { transform: scale(1.08); opacity:1 }
+      100% { transform: scale(1); opacity:.8 }
+    }
+    .breath-ball { width:120px; height:120px; border-radius:50%; background: radial-gradient(circle at 30% 30%, var(--primary), var(--accent)); margin: 10px auto; animation: breathe 6s ease-in-out infinite; box-shadow: var(--shadow); }
+
+    /* High contrast */
+    [data-contrast="high"] { filter: contrast(1.15) saturate(1.05); }
+    [data-contrast="high"] .card { background: #000; border-color:#fff; }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 20px; right: 20px; background: #111a2e; color: #fff; border:1px solid rgba(255,255,255,.15); border-radius: 14px; padding: 10px 12px; box-shadow: var(--shadow); display:none; z-index: 1000; }
+
+    /* TTS Controls */
+    .tts-controls {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      display: flex;
+      gap: 10px;
+      z-index: 100;
+    }
+    .tts-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #061c40;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      border: none;
+    }
+
+    /* Customization Page */
+    .condition-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .condition-card {
+      padding: 16px;
+      border-radius: 12px;
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,.1);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .condition-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+    .condition-card.selected {
+      background: rgba(108,229,232,0.15);
+      border-color: var(--primary);
+    }
+    .condition-card h4 {
+      margin: 0 0 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Improved Light Mode */
+    [data-theme="light"] .topbar {
+      background: linear-gradient(0deg, rgba(255,255,255,0.7), rgba(255,255,255,0.9));
+      border-bottom: 1px solid rgba(0,0,0,.08);
+    }
+    [data-theme="light"] .dropdown {
+      background: #ffffff;
+      border: 1px solid rgba(0,0,0,.1);
+    }
+    [data-theme="light"] .form-control {
+      background: rgba(0,0,0,.05);
+      border: 1px solid rgba(0,0,0,.1);
+      color: var(--txt);
+    }
+    [data-theme="light"] .auth-card {
+      background: rgba(255,255,255,0.9);
+      border: 1px solid rgba(0,0,0,.1);
+    }
+    [data-theme="light"] .condition-card {
+      background: #fff;
+      border: 1px solid rgba(0,0,0,.1);
+    }
+    
+    /* SOS Modal */
+    .sos-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.9); z-index: 2000; display: none; }
+    .sos-modal.active { display: flex; align-items: center; justify-content: center; }
+    .sos-content { 
+      background: #111a2e; 
+      border: 3px solid #ff2d55; 
+      border-radius: 20px; 
+      padding: 40px 30px; 
+      max-width: 600px; 
+      width: 95%; 
+      text-align: center; 
+      position: relative;
+      box-shadow: 0 20px 60px rgba(255,45,85,0.3);
+    }
+    .sos-content h2 { 
+      color: #ff2d55; 
+      margin: 0 0 25px; 
+      font-size: 32px; 
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .sos-actions { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 16px; 
+      margin: 30px 0;
+      align-items: center;
+    }
+    .sos-btn { 
+      padding: 18px 24px; 
+      border-radius: 15px; 
+      border: 2px solid transparent;
+      font-weight: 700; 
+      cursor: pointer; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      gap: 12px; 
+      font-size: 18px;
+      min-width: 280px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .sos-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    }
+    .sos-btn.emergency { 
+      background: linear-gradient(135deg, #ff2d55, #ff4757); 
+      color: white;
+      border-color: #ff6b7a;
+    }
+    .sos-btn.contact { 
+      background: linear-gradient(135deg, #4da8ff, #5b9eff); 
+      color: white;
+      border-color: #7bb3ff;
+    }
+    .sos-btn.hospital { 
+      background: linear-gradient(135deg, #7cf7b0, #8ff7c0); 
+      color: #111a2e;
+      border-color: #9ff7d0;
+    }
+    .sos-btn.records { 
+      background: linear-gradient(135deg, #a29bfe, #b29cfe); 
+      color: white;
+      border-color: #c29dfe;
+    }
+    .sos-close { 
+      position: absolute; 
+      top: 20px; 
+      right: 25px; 
+      background: rgba(255,255,255,0.1); 
+      border: 1px solid rgba(255,255,255,0.2); 
+      color: #9db2d7; 
+      font-size: 24px; 
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+    .sos-close:hover {
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+    }
+
+    /* Personalized Dashboard Styles */
+    .service-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .service-card {
+      padding: 16px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      transition: all 0.3s ease;
+    }
+    .service-card:hover {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(255,255,255,0.12);
+    }
+    .service-card h4 {
+      margin: 0 0 12px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--primary);
+    }
+    .service-card h5 {
+      margin: 12px 0 8px 0;
+      color: var(--accent);
+    }
+    .quick-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+    .quick-actions .btn {
+      flex: 1;
+      min-width: 200px;
+    }
+    /* Range slider styling */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-track {
+      background: rgba(255,255,255,0.2);
+      height: 6px;
+      border-radius: 3px;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      background: var(--primary);
+      height: 20px;
+      width: 20px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    input[type="range"]::-moz-range-track {
+      background: rgba(255,255,255,0.2);
+      height: 6px;
+      border-radius: 3px;
+      border: none;
+    }
+    input[type="range"]::-moz-range-thumb {
+      background: var(--primary);
+      height: 20px;
+      width: 20px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+<!-- Auth Container (shown first) -->
+<div id="auth-container">
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <div class="auth-tab active" data-tab="login">Login</div>
+      <div class="auth-tab" data-tab="signup">Sign Up</div>
+    </div>
+
+    <form id="login-form" class="auth-form active">
+      <div class="form-group">
+        <label for="login-email">Email</label>
+        <input type="email" id="login-email" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="login-password">Password</label>
+        <div style="display:flex; gap:8px; align-items:center">
+          <input type="password" id="login-password" class="form-control" required style="flex:1">
+          <button type="button" class="btn ghost" onclick="togglePw('login-password')" title="Show/Hide">👁</button>
+        </div>
+      </div>
+      <label style="display:flex; align-items:center; gap:8px; margin:8px 0"><input type="checkbox" id="login-remember"> Remember me</label>
+      <div id="login-error" class="muted" style="color:#ff6b6b; min-height:18px"></div>
+      <div class="captcha-container">
+        <div class="captcha-code" id="login-captcha">A3B7</div>
+        <button type="button" class="btn ghost" onclick="generateCaptcha('login')"><i class="fas fa-sync-alt"></i></button>
+      </div>
+      <div class="form-group">
+        <label for="login-captcha-input">Enter CAPTCHA</label>
+        <input type="text" id="login-captcha-input" class="form-control" required>
+      </div>
+      <button type="button" class="btn primary btn-block" onclick="verifyCaptcha('login')">Login</button>
+    </form>
+
+    <form id="signup-form" class="auth-form">
+      <div class="form-group">
+        <label for="signup-name">Full Name</label>
+        <input type="text" id="signup-name" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="signup-email">Email</label>
+        <input type="email" id="signup-email" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="signup-password">Password</label>
+        <div style="display:flex; gap:8px; align-items:center">
+          <input type="password" id="signup-password" class="form-control" required style="flex:1" placeholder="At least 8 chars, 1 number">
+          <button type="button" class="btn ghost" onclick="togglePw('signup-password')" title="Show/Hide">👁</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="signup-password2">Confirm Password</label>
+        <input type="password" id="signup-password2" class="form-control" required>
+      </div>
+      <div id="signup-error" class="muted" style="color:#ff6b6b; min-height:18px"></div>
+      <div class="captcha-container">
+        <div class="captcha-code" id="signup-captcha">C5D2</div>
+        <button type="button" class="btn ghost" onclick="generateCaptcha('signup')"><i class="fas fa-sync-alt"></i></button>
+      </div>
+      <div class="form-group">
+        <label for="signup-captcha-input">Enter CAPTCHA</label>
+        <input type="text" id="signup-captcha-input" class="form-control" required>
+      </div>
+      <button type="button" class="btn primary btn-block" onclick="verifyCaptcha('signup')">Sign Up</button>
+    </form>
+
+    <div id="otp-verify" class="auth-form">
+      <h3 style="text-align: center; margin-bottom: 20px;">Enter OTP</h3>
+      <p class="muted" style="text-align: center; margin-bottom: 20px;">We've sent a verification code to your email</p>
+      <div class="otp-container">
+        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]">
+        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]">
+        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]">
+        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]">
+        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]">
+        <input type="text" class="otp-input" maxlength="1" pattern="[0-9]">
+      </div>
+      <button type="button" class="btn primary btn-block" onclick="verifyOTP()">Verify</button>
+      <p style="text-align: center; margin-top: 16px;">
+        <a href="#" onclick="resendOTP()" style="color: var(--primary);">Resend OTP</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Sidebar -->
+<aside class="sidebar" aria-label="Primary Navigation" style="display:none">
+  <div class="logo"><i class="fas fa-clinic-medical"></i> MediNova</div>
+  <ul class="side-nav">
+    <li><a href="#home"><i class="fas fa-home"></i> <span data-i18n="nav_home">Home</span></a></li>
+    <li><a href="#appointments"><i class="fas fa-concierge-bell"></i> <span data-i18n="nav_services">Services</span></a></li>
+    <li><a href="#records"><i class="fas fa-file-medical"></i> <span data-i18n="nav_health">Health</span></a></li>
+    <li><a href="#dashboard"><i class="fas fa-chart-line"></i> <span data-i18n="nav_dashboard">Dashboard</span></a></li>
+    <li><a href="#mental"><i class="fas fa-smile"></i> <span data-i18n="nav_wellbeing">Well‑being</span></a></li>
+    <li><a href="#resources"><i class="fas fa-book-open"></i> <span data-i18n="nav_resources">Resources</span></a></li>
+    <li><a href="#contact"><i class="fas fa-envelope"></i> <span data-i18n="nav_contact">Contact</span></a></li>
+    <li><a href="#customization"><i class="fas fa-cog"></i> <span data-i18n="nav_customize">Customize</span></a></li>
+  </ul>
+  <div class="muted" style="font-size:12px; margin-top:auto">Quick access</div>
+</aside>
+
+<!-- Main App (hidden initially) -->
+<div id="main-app" style="display: none;">
+  <header class="topbar" role="banner">
+    <div class="wrap row">
+      <div class="brand" onclick="go('#home')" style="cursor:pointer" aria-label="MediNova Home">
+        <i class="fas fa-hospital-user" style="font-size: 28px;"></i>
+        <span>MediNova</span>
+        <span class="pill ok" style="margin-left:6px">Home</span>
+      </div>
+      <nav aria-label="Primary Navigation">
+        <ul class="menu" role="menubar">
+          <li role="none"><a role="menuitem" href="#home"><i class="fas fa-home"></i> Home</a></li>
+          <li role="none">
+            <button role="menuitem" aria-haspopup="true"><i class="fas fa-concierge-bell"></i> Services ▾</button>
+            <div class="dropdown" role="menu">
+              <a href="#appointments"><i class="fas fa-calendar-check"></i> Appointments</a>
+              <a href="#symptom"><i class="fas fa-stethoscope"></i> Symptom Checker</a>
+              <a href="#emergency"><i class="fas fa-ambulance"></i> Emergency Mode</a>
+            </div>
+          </li>
+          <li role="none">
+            <button role="menuitem" aria-haspopup="true"><i class="fas fa-heartbeat"></i> Health ▾</button>
+            <div class="dropdown" role="menu">
+              <a href="#records"><i class="fas fa-file-medical"></i> Record Vault</a>
+              <a href="#dashboard"><i class="fas fa-chart-line"></i> Dashboard</a>
+            </div>
+          </li>
+          <li role="none">
+            <button role="menuitem" aria-haspopup="true"><i class="fas fa-smile"></i> Well‑being ▾</button>
+            <div class="dropdown" role="menu">
+              <a href="#education"><i class="fas fa-book-medical"></i> Education</a>
+              <a href="#mental"><i class="fas fa-brain"></i> Mental Health</a>
+              <a href="#community"><i class="fas fa-users"></i> Community</a>
+            </div>
+          </li>
+          <li role="none"><a role="menuitem" href="#resources"><i class="fas fa-book-open"></i> Resources</a></li>
+          <li role="none"><a role="menuitem" href="#contact"><i class="fas fa-envelope"></i> Contact</a></li>
+          <li role="none"><a role="menuitem" href="#customization"><i class="fas fa-cog"></i> Customize</a></li>
+        </ul>
+      </nav>
+      <div class="row" role="toolbar" aria-label="Accessibility Controls">
+        <a class="btn sos" href="#emergency" onclick="sos()" title="SOS — Call Ambulance" data-i18n-title="sos_title" style="background:#ff2d55; color:#fff; border-color:rgba(255,255,255,.2)"><i class="fas fa-exclamation-triangle"></i> SOS</a>
+        <button class="btn emergency-btn" onclick="callEmergencyContacts()" title="Call Emergency Contacts"><i class="fas fa-address-book"></i> Contacts</button>
+        <button class="btn hospital-btn" onclick="findNearestHospital()" title="Find Nearest Hospital"><i class="fas fa-hospital"></i> Hospital</button>
+        <button class="btn records-btn" onclick="sendMedicalRecords()" title="Send Medical Records"><i class="fas fa-file-medical"></i> Records</button>
+        <button class="btn ghost" onclick="toggleTheme()" title="Toggle light/dark"><i class="fas fa-moon"></i></button>
+        <button class="btn ghost" onclick="toggleContrast()" title="High contrast"><i class="fas fa-adjust"></i></button>
+        <button class="btn ghost" onclick="toggleTTS()" title="Text to speech"><i class="fas fa-volume-up"></i></button>
+        <select id="lang" class="btn ghost" title="Language">
+          <option value="en">EN</option>
+          <option value="hi">हिं</option>
+        </select>
+        <button class="btn ghost" onclick="logout()" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
+      </div>
+    </div>
+  </header>
+
+  <main id="app" class="wrap">
+    <!-- HOME -->
+    <section id="home" class="page active" aria-labelledby="home-title">
+      <div class="hero">
+        <div>
+          <span class="badge">💡 <span data-i18n="tagline">Smart care, simple clicks.</span></span>
+          <h1 id="home-title" data-i18n="hero">Your one‑stop smart healthcare companion.</h1>
+          <p class="lead" data-i18n="lead">Book doctors, track health, learn, and get help—securely and accessibly.</p>
+          <div class="cta">
+            <a href="#symptom" class="btn primary"><i class="fas fa-stethoscope"></i> Try Symptom Checker</a>
+            <a href="#emergency" class="btn ghost"><i class="fas fa-ambulance"></i> Emergency Mode</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid" aria-label="Highlights">
+        <div class="card span-4">
+          <h3><i class="fas fa-shield-alt"></i> Safe by design</h3>
+          <p class="muted">Local‑first demo: your inputs stay in your browser. Not a medical diagnosis.</p>
+        </div>
+        <div class="card span-4">
+          <h3><i class="fas fa-lock"></i> Secure vault</h3>
+          <p class="muted">Organize reports & prescriptions with tags. (Demo storage)</p>
+        </div>
+        <div class="card span-4">
+          <h3><i class="fas fa-brain"></i> Well‑being</h3>
+          <p class="muted">Mood tracker, breathing coach, education hub & community.</p>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Shared options for Record Vault fields -->
+    <datalist id="titleOptions">
+      <option value="CBC Report"></option>
+      <option value="Lipid Profile"></option>
+      <option value="X‑Ray Chest"></option>
+      <option value="MRI Brain"></option>
+      <option value="Prescription"></option>
+      <option value="Discharge Summary"></option>
+    </datalist>
+    <datalist id="tagOptions">
+      <option value="Blood Test"></option>
+      <option value="Imaging"></option>
+      <option value="Prescription"></option>
+      <option value="Report"></option>
+      <option value="Invoice"></option>
+      <option value="ECG"></option>
+    </datalist>
+
+    <!-- Shared options for Medications -->
+    <datalist id="medNames">
+      <option value="Paracetamol 500mg"></option>
+      <option value="Ibuprofen 400mg"></option>
+      <option value="Amoxicillin 500mg"></option>
+      <option value="Azithromycin 250mg"></option>
+      <option value="Metformin 500mg"></option>
+    </datalist>
+    <datalist id="medSchedules">
+      <option value="Once daily"></option>
+      <option value="Twice daily"></option>
+      <option value="Thrice daily"></option>
+      <option value="After meals"></option>
+      <option value="Before meals"></option>
+    </datalist>
+
+    <!-- APPOINTMENTS -->
+    <section id="appointments" class="page" aria-labelledby="appt-title">
+      <h2 id="appt-title"><i class="fas fa-calendar-check"></i> Smart Appointments</h2>
+      <p class="muted">Filter by specialization and availability; saved locally.</p>
+      <div class="grid">
+        <div class="card span-8">
+          <form id="apptForm" class="grid">
+            <div class="card span-4">
+              <label>Doctor / Specialty<br>
+                <select name="spec" required style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+                  <option>General Physician</option>
+                  <option>Cardiologist</option>
+                  <option>Dermatologist</option>
+                  <option>Pediatrician</option>
+                  <option>Psychiatrist</option>
+                </select>
+              </label>
+            </div>
+            <div class="card span-4">
+              <label>Doctor Name<br><input name="doctor" placeholder="e.g., Dr. Mehta" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)"/></label>
+            </div>
+            <div class="card span-4">
+              <label>Hospital / Clinic<br><input name="hospital" placeholder="e.g., City Hospital" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)"/></label>
+            </div>
+            <div class="card span-4">
+              <label>Patient Name<br><input required name="name" placeholder="e.g., Priya Sharma" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)"/></label>
+            </div>
+            <div class="card span-4">
+              <label>Mode<br>
+                <select name="mode" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+                  <option>In‑Person</option>
+                  <option>Teleconsultation</option>
+                </select>
+              </label>
+            </div>
+            <div class="card span-4">
+              <label>Date & Time<br><input type="datetime-local" required name="dt" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)"/></label>
+            </div>
+            <div class="card span-12" style="display:flex; gap:10px; justify-content:flex-end">
+              <button class="btn ghost" type="reset">Reset</button>
+              <button class="btn primary" type="submit">Save Appointment</button>
+            </div>
+          </form>
+        </div>
+        <div class="card span-4">
+          <h3><i class="fas fa-filter"></i> Filters</h3>
+          <label class="muted">Specialty<br>
+            <select id="filterSpec" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+              <option value="">All</option>
+              <option>General Physician</option>
+              <option>Cardiologist</option>
+              <option>Dermatologist</option>
+              <option>Pediatrician</option>
+              <option>Psychiatrist</option>
+            </select>
+          </label>
+          <div style="margin-top:12px">
+            <button class="btn ghost" onclick="renderAppts()">Apply</button>
+          </div>
+        </div>
+        <div class="card span-12">
+          <h3><i class="fas fa-bell"></i> Reminders (next 24 hours)</h3>
+          <ul id="apptReminders" class="muted"></ul>
+        </div>
+        <div class="card span-12">
+          <h3><i class="fas fa-list"></i> Upcoming Appointments</h3>
+          <table id="apptTable" aria-label="Appointments table"><thead><tr><th>Patient</th><th>Doctor</th><th>Hospital</th><th>Specialty</th><th>Date/Time</th><th>Mode</th><th></th></tr></thead><tbody></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SYMPTOM CHECKER -->
+    <section id="symptom" class="page" aria-labelledby="sym-title">
+      <h2 id="sym-title"><i class="fas fa-stethoscope"></i> AI‑Lite Symptom Checker</h2>
+      <p class="muted">Educational only. Not a medical diagnosis. Seek professional care for urgent concerns.</p>
+      <div class="grid">
+        <div class="card span-6">
+          <label>Primary Symptom<br>
+            <select id="symptom1" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+              <option>Fever</option>
+              <option>Chest Pain</option>
+              <option>Rash / Itching</option>
+              <option>Headache</option>
+              <option>Abdominal Pain</option>
+              <option>Shortness of Breath</option>
+            </select>
+          </label>
+          <label style="display:block; margin-top:10px">Duration (days)<br>
+            <input id="duration" type="number" min="0" value="1" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)"/>
+          </label>
+          <label style="display:block; margin-top:10px">Age Group<br>
+            <select id="agegrp" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+              <option>Child</option>
+              <option>Adult</option>
+              <option>Senior</option>
+            </select>
+          </label>
+          <div style="margin-top:12px">
+            <button class="btn primary" onclick="checkSymptoms()">Get Suggestions</button>
+          </div>
+        </div>
+        <div class="card span-6">
+          <h3><i class="fas fa-lightbulb"></i> Possible Causes & Next Steps</h3>
+          <ul id="symOut"></ul>
+          <div class="pill warn" style="margin-top:6px">If symptoms are severe, use Emergency Mode.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EMERGENCY -->
+    <section id="emergency" class="page" aria-labelledby="emg-title">
+      <h2 id="emg-title"><i class="fas fa-ambulance"></i> Emergency Mode</h2>
+      <p class="muted">Share your location to find nearby hospitals and pharmacies fast.</p>
+      <div class="grid">
+        <div class="card span-6">
+          <button class="btn primary" onclick="openNearest('hospital')"><i class="fas fa-hospital"></i> Locate Nearest Hospitals</button>
+          <button class="btn ghost" style="margin-left:8px" onclick="openNearest('pharmacy')"><i class="fas fa-pills"></i> Locate Pharmacies</button>
+          <div id="geo" class="muted" style="margin-top:10px"></div>
+        </div>
+        <div class="card span-6">
+          <h3><i class="fas fa-address-book"></i> Emergency Contacts</h3>
+          <form id="iceForm" class="grid">
+            <div class="card span-6"><label>Name<br><input name="n" placeholder="e.g., Mom" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)"></label></div>
+            <div class="card span-6"><label>Phone<br><input name="p" placeholder="e.g., +91 98xxxxxx" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)"></label></div>
+            <div class="card span-12" style="display:flex; gap:10px; justify-content:flex-end">
+              <button class="btn ghost" type="reset">Reset</button>
+              <button class="btn primary" type="submit">Save</button>
+            </div>
+          </form>
+          <ul id="iceList"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- RECORDS -->
+    <section id="records" class="page" aria-labelledby="rec-title">
+      <h2 id="rec-title"><i class="fas fa-file-medical"></i> Health Record Vault (Demo)</h2>
+      <p class="muted">Upload and tag files. Stored in your browser (localStorage metadata only).</p>
+      <div class="grid">
+        <div class="card span-8">
+          <form id="recForm" class="grid">
+            <div class="card span-6"><label>Title<br><input name="title" list="titleOptions" required placeholder="e.g., CBC Report" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)"></label></div>
+            <div class="card span-6"><label>Tag<br><input name="tag" list="tagOptions" placeholder="Blood Test" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)"></label></div>
+            <div class="card span-12"><label>File (not uploaded to server in demo)<br><input name="file" type="file" accept="application/pdf,.pdf" style="width:100%"></label></div>
+            <div class="card span-12" style="display:flex; gap:10px; justify-content:flex-end">
+              <button class="btn ghost" type="reset">Reset</button>
+              <button class="btn primary" type="submit">Add Record</button>
+            </div>
+          </form>
+        </div>
+        <div class="card span-4">
+          <h3><i class="fas fa-filter"></i> Filter</h3>
+          <label class="muted">Tag<br><input id="recFilter" list="tagOptions" placeholder="e.g., X‑Ray" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)"></label>
+          <div style="margin-top:12px"><button class="btn ghost" onclick="renderRecs()">Apply</button></div>
+        </div>
+        <div class="card span-12">
+          <table id="recTable"><thead><tr><th>Title</th><th>Tag</th><th>Date</th><th>Actions</th></tr></thead><tbody></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="page" aria-labelledby="dash-title">
+      <h2 id="dash-title"><i class="fas fa-chart-line"></i> Health Dashboard</h2>
+      <div class="grid">
+        <div class="card span-12">
+          <div class="row" role="tablist" aria-label="Dashboard Tabs" style="gap:10px; flex-wrap:wrap">
+            <button class="btn primary" role="tab" aria-selected="true" onclick="setDashTab('meds')"><i class="fas fa-pills"></i> Medication & Treatments</button>
+            <button class="btn ghost" role="tab" aria-selected="false" onclick="setDashTab('vault')"><i class="fas fa-file-medical"></i> Health Vault</button>
+            <button class="btn ghost" role="tab" aria-selected="false" onclick="setDashTab('miniAppt')"><i class="fas fa-calendar-check"></i> Upcoming Appointments</button>
+            <button class="btn ghost" role="tab" aria-selected="false" onclick="setDashTab('journal')"><i class="fas fa-notes-medical"></i> My Symptoms Journal</button>
+            <button class="btn ghost" role="tab" aria-selected="false" onclick="setDashTab('export')"><i class="fas fa-file-pdf"></i> Export PDF</button>
+        </div>
+          </div>
+
+        <!-- Medications & Treatments -->
+        <div id="dash-meds" class="card span-12">
+          <h3><i class="fas fa-pills"></i> Medications & Treatments</h3>
+          <form id="medForm" class="grid">
+            <div class="card span-3"><label>Name<br><input name="n" list="medNames" placeholder="e.g., Amoxicillin 500mg" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)"></label></div>
+            <div class="card span-3"><label>Dosage / Schedule<br><input name="d" list="medSchedules" placeholder="1 capsule, 3× daily" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)"></label></div>
+            <div class="card span-3"><label>Start<br><input name="s" type="date" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)"></label></div>
+            <div class="card span-3"><label>End<br><input name="e" type="date" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)"></label></div>
+            <div class="card span-12" style="display:flex; gap:10px; justify-content:flex-end">
+              <button class="btn primary" type="submit">Add</button>
+            </div>
+          </form>
+          <table id="medTable" aria-label="Medications table"><thead><tr><th>Name</th><th>Schedule</th><th>Start</th><th>End</th><th></th></tr></thead><tbody></tbody></table>
+        </div>
+
+        <!-- Journal Export (PDF) -->
+        <div id="dash-export" class="card span-12" style="display:none">
+          <h3><i class="fas fa-file-pdf"></i> Export Symptoms Journal (PDF)</h3>
+          <div class="row" style="gap:10px; flex-wrap:wrap">
+            <label>From<br><input id="pdfFrom" type="date" style="padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)"></label>
+            <label>To<br><input id="pdfTo" type="date" style="padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)"></label>
+            <div style="margin-top:22px"><button class="btn primary" onclick="exportJournalPDF()"><i class="fas fa-download"></i> Generate</button></div>
+          </div>
+          <p class="muted" style="margin-top:8px">Generates a printer-friendly page you can save as PDF and share with your doctor.</p>
+        </div>
+
+        <!-- Vault Redirect -->
+        <div id="dash-vault" class="card span-12" style="display:none">
+          <h3><i class="fas fa-file-medical"></i> Health Vault</h3>
+          <p class="muted">Your records are saved locally in the Records Vault.</p>
+          <a class="btn primary" href="#records"><i class="fas fa-arrow-right"></i> Go to Records Vault</a>
+        </div>
+
+        <!-- Mini Appointments -->
+        <div id="dash-miniAppt" class="card span-12" style="display:none">
+          <h3><i class="fas fa-calendar-check"></i> Upcoming Appointments</h3>
+          <table id="miniApptTable"><thead><tr><th>When</th><th>Patient</th><th>Doctor</th><th>Hospital</th><th>Mode</th></tr></thead><tbody></tbody></table>
+        </div>
+
+        <!-- Symptoms Journal -->
+        <div id="dash-journal" class="card span-12" style="display:none">
+          <h3><i class="fas fa-notes-medical"></i> My Symptoms Journal</h3>
+          <div class="row" style="gap:10px; flex-wrap:wrap">
+            <label>Date<br><input id="jDate" type="date" style="padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)"></label>
+            <label>Symptom<br><input id="jSym" placeholder="e.g., Headache" style="padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)"></label>
+            <label>Severity<br><select id="jSev" style="padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)"><option>Mild</option><option>Moderate</option><option>Severe</option></select></label>
+            <label>Notes<br><input id="jNote" placeholder="Triggers, relief, etc." style="min-width:240px; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)"></label>
+            <div style="margin-top:22px"><button class="btn primary" onclick="saveJournal()">Add Entry</button></div>
+          </div>
+          <div class="row" style="gap:10px; margin-top:12px; flex-wrap:wrap">
+            <label>Filter by symptom<br><input id="jFilter" placeholder="e.g., Headache" oninput="renderJournal()" style="padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)"></label>
+            <div class="row" style="gap:6px">
+              <button class="btn ghost" onclick="journalPrevDay()">◀ Prev</button>
+              <button class="btn ghost" onclick="journalToday()">Today</button>
+              <button class="btn ghost" onclick="journalNextDay()">Next ▶</button>
+            </div>
+          </div>
+          <table id="journalTable" style="margin-top:10px"><thead><tr><th>Date</th><th>Symptom</th><th>Severity</th><th>Notes</th><th></th></tr></thead><tbody></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- EDUCATION -->
+    <section id="education" class="page" aria-labelledby="edu-title">
+      <h2 id="edu-title"><i class="fas fa-book-medical"></i> Interactive Education</h2>
+      <p class="muted">Click an organ to learn a quick fact.</p>
+      <div class="grid">
+        <div class="card span-6" style="text-align:center">
+          <!-- Simple body SVG map -->
+          <svg id="bodyMap" viewBox="0 0 200 420" width="100%" style="max-width:340px;" aria-label="Body Map">
+            <defs>
+              <style>.org{fill:#4da8ff;opacity:.35;cursor:pointer}.org:hover{opacity:.6;}</style>
+            </defs>
+            <rect x="90" y="20" width="20" height="40" rx="10" class="org" data-organ="brain"/>
+            <rect x="70" y="80" width="60" height="50" rx="12" class="org" data-organ="lungs"/>
+            <rect x="90" y="140" width="20" height="30" rx="6" class="org" data-organ="heart"/>
+            <rect x="70" y="180" width="60" height="40" rx="8" class="org" data-organ="liver"/>
+            <rect x="80" y="230" width="40" height="40" rx="8" class="org" data-organ="stomach"/>
+          </svg>
+        </div>
+        <div class="card span-6">
+          <h3><i class="fas fa-info-circle"></i> Quick Facts</h3>
+          <div id="facts">Tap an organ to view info.</div>
+          <div style="margin-top:12px">
+            <button class="btn ghost" onclick="tts(document.getElementById('facts').innerText)"><i class="fas fa-volume-up"></i> Read Aloud</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MENTAL HEALTH -->
+    <section id="mental" class="page" aria-labelledby="mh-title">
+      <h2 id="mh-title"><i class="fas fa-brain"></i> Mental Health Toolkit</h2>
+      <div class="grid">
+        <div class="card span-6" style="text-align:center">
+          <h3><i class="fas fa-wind"></i> Breathing Coach (4‑4‑4)</h3>
+          <div class="breath-ball" aria-hidden="true"></div>
+          <p class="muted">Inhale 4s → Hold 4s → Exhale 4s. Repeat.</p>
+        </div>
+        <div class="card span-6">
+          <h3><i class="fas fa-smile"></i> Mood Tracker</h3>
+          <label>How are you feeling today?<br>
+            <select id="moodSel" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+              <option>😊 Happy</option>
+              <option>😐 Okay</option>
+              <option>😟 Stressed</option>
+              <option>😢 Low</option>
+            </select>
+          </label>
+          <label style="display:block; margin-top:10px">Note<br>
+            <textarea id="moodNote" rows="3" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)" placeholder="Jotted thoughts..."></textarea>
+          </label>
+          <div style="margin-top:12px; display:flex; gap:10px; justify-content:flex-end">
+            <button class="btn ghost" onclick="clearMoods()">Clear</button>
+            <button class="btn primary" onclick="saveMood()">Save</button>
+          </div>
+          <ul id="moodList" style="margin-top:10px"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMMUNITY -->
+    <section id="community" class="page" aria-labelledby="com-title">
+      <h2 id="com-title"><i class="fas fa-users"></i> Community Q&A (Demo)</h2>
+      <p class="muted">Privacy first: Questions are local to your browser in this demo.</p>
+      <div class="grid">
+        <div class="card span-6">
+          <label>Ask a question<br>
+            <textarea id="q" rows="3" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)" placeholder="e.g., How to manage seasonal allergies?"></textarea>
+          </label>
+          <div style="margin-top:10px; display:flex; gap:10px; justify-content:flex-end">
+            <button class="btn ghost" onclick="document.getElementById('q').value=''">Reset</button>
+            <button class="btn primary" onclick="postQ()">Post</button>
+          </div>
+        </div>
+        <div class="card span-6">
+          <h3><i class="fas fa-comments"></i> Thread</h3>
+          <ul id="thread"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESOURCES -->
+    <section id="resources" class="page" aria-labelledby="res-title">
+      <h2 id="res-title"><i class="fas fa-book-open"></i> Resources</h2>
+      <div class="grid">
+        <div class="card span-4 clickable" onclick="openResource('firstaid')"><h3><i class="fas fa-first-aid"></i> First Aid Basics</h3><p class="muted">Bleeding control, CPR overview, choking relief.</p></div>
+        <div class="card span-4 clickable" onclick="openResource('chronic')"><h3><i class="fas fa-clipboard-list"></i> Chronic Care</h3><p class="muted">Diabetes, hypertension, asthma trackers and tips.</p></div>
+        <div class="card span-4 clickable" onclick="openResource('vaccination')"><h3><i class="fas fa-syringe"></i> Vaccination</h3><p class="muted">Schedules and common FAQs for families.</p></div>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="page" aria-labelledby="ct-title">
+      <h2 id="ct-title"><i class="fas fa-envelope"></i> Contact & Feedback</h2>
+      <div class="grid">
+        <div class="card span-6">
+          <form id="fbForm">
+            <label>Your Name<br><input name="n" required placeholder="Your name" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)"></label>
+            <label style="display:block; margin-top:10px">Message<br>
+              <textarea name="m" rows="4" required placeholder="Your feedback helps us improve" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)"></textarea>
+            </label>
+            <div style="margin-top:12px; display:flex; gap:10px; justify-content:flex-end">
+              <button class="btn ghost" type="reset">Reset</button>
+              <button class="btn primary" type="submit">Send</button>
+            </div>
+          </form>
+        </div>
+        <div class="card span-6">
+          <h3><i class="fas fa-universal-access"></i> Accessibility</h3>
+          <p class="muted">Use the toolbar (top right) to toggle theme, high contrast, and language. Select any text and press the speaker button below to read aloud.</p>
+          <button class="btn ghost" onclick="tts(window.getSelection().toString())"><i class="fas fa-volume-up"></i> Read Selection</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- CUSTOMIZATION -->
+    <section id="customization" class="page" aria-labelledby="custom-title">
+      <h2 id="custom-title"><i class="fas fa-cog"></i> Customize Your Experience</h2>
+      <p class="muted">Select your health conditions to personalize the information you see.</p>
+      
+      <div class="condition-grid">
+        <div class="condition-card" data-condition="diabetes">
+          <h4><i class="fas fa-tint"></i> Diabetes</h4>
+          <p class="muted">Blood sugar management and related resources</p>
+        </div>
+        <div class="condition-card" data-condition="hypertension">
+          <h4><i class="fas fa-heartbeat"></i> Hypertension</h4>
+          <p class="muted">Blood pressure monitoring and management</p>
+        </div>
+        <div class="condition-card" data-condition="arthritis">
+          <h4><i class="fas fa-wheelchair"></i> Arthritis</h4>
+          <p class="muted">Joint health and pain management</p>
+        </div>
+        <div class="condition-card" data-condition="thyroid">
+          <h4><i class="fas fa-balance-scale"></i> Thyroid</h4>
+          <p class="muted">Hormone balance and metabolism</p>
+        </div>
+        <div class="condition-card" data-condition="heart">
+          <h4><i class="fas fa-heart"></i> Heart Disease</h4>
+          <p class="muted">Cardiovascular health and prevention</p>
+        </div>
+        <div class="condition-card" data-condition="mental">
+          <h4><i class="fas fa-brain"></i> Mental Health</h4>
+          <p class="muted">Anxiety, depression, and stress management</p>
+        </div>
+        <div class="condition-card" data-condition="allergies">
+          <h4><i class="fas fa-allergies"></i> Allergies</h4>
+          <p class="muted">Seasonal and food allergy management</p>
+        </div>
+        <div class="condition-card" data-condition="pregnancy">
+          <h4><i class="fas fa-baby"></i> Woman Health & Pregnancy</h4>
+          <p class="muted">Maternal and fetal health resources</p>
+        </div>
+      </div>
+      
+      <div style="margin-top: 30px; text-align: center;">
+        <button class="btn primary" onclick="saveCustomization()"><i class="fas fa-save"></i> Save Preferences</button>
+        <button class="btn ghost" onclick="resetCustomization()" style="margin-left: 10px;"><i class="fas fa-undo"></i> Reset</button>
+        <button class="btn primary" onclick="showCustomisedServices()" style="margin-left: 10px;"><i class="fas fa-cogs"></i> Customised Services</button>
+      </div>
+    </section>
+
+    <!-- PERSONALIZED DASHBOARD -->
+    <section id="personalized-dashboard" class="page" aria-labelledby="personalized-title">
+      <h2 id="personalized-title"><i class="fas fa-user-md"></i> Your Personalized Dashboard</h2>
+      <p class="muted">Customized health services based on your selected conditions.</p>
+      
+      <div class="grid">
+        <!-- Diabetes Services -->
+        <div id="diabetes-services" class="card span-6" style="display: none;">
+          <h3><i class="fas fa-tint"></i> Diabetes Management</h3>
+          <div class="service-grid">
+            <div class="service-card">
+              <h4><i class="fas fa-chart-line"></i> Glucose Monitoring</h4>
+              <div class="glucose-tracker">
+                <label>Blood Sugar Level (mg/dL)<br>
+                  <input type="number" id="glucose-level" placeholder="Enter reading" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+                </label>
+                <label>Time of Reading<br>
+                  <input type="time" id="glucose-time" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+                </label>
+                <button class="btn primary" onclick="saveGlucoseReading()">Save Reading</button>
+              </div>
+              <div id="glucose-history" class="muted" style="margin-top:10px;"></div>
+            </div>
+            <div class="service-card">
+              <h4><i class="fas fa-utensils"></i> Diet Planning</h4>
+              <div class="diet-planner">
+                <label>Meal Type<br>
+                  <select id="meal-type" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+                    <option>Breakfast</option>
+                    <option>Lunch</option>
+                    <option>Dinner</option>
+                    <option>Snack</option>
+                  </select>
+                </label>
+                <label>Food Item<br>
+                  <input type="text" id="food-item" placeholder="e.g., Brown rice, 1 cup" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+                </label>
+                <label>Carbohydrates (g)<br>
+                  <input type="number" id="carbs" placeholder="Enter carbs" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+                </label>
+                <button class="btn primary" onclick="saveMeal()">Log Meal</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hypertension Services -->
+        <div id="hypertension-services" class="card span-6" style="display: none;">
+          <h3><i class="fas fa-heartbeat"></i> Blood Pressure Management</h3>
+          <div class="service-grid">
+            <div class="service-card">
+              <h4><i class="fas fa-heart"></i> BP Tracking</h4>
+              <div class="bp-tracker">
+                <label>Systolic (mmHg)<br>
+                  <input type="number" id="systolic" placeholder="120" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+                </label>
+                <label>Diastolic (mmHg)<br>
+                  <input type="number" id="diastolic" placeholder="80" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+                </label>
+                <label>Heart Rate (bpm)<br>
+                  <input type="number" id="heart-rate" placeholder="72" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+                </label>
+                <button class="btn primary" onclick="saveBPReading()">Save Reading</button>
+              </div>
+              <div id="bp-status" class="muted" style="margin-top:10px;"></div>
+            </div>
+            <div class="service-card">
+              <h4><i class="fas fa-dumbbell"></i> Lifestyle Tips</h4>
+              <div class="lifestyle-tips">
+                <ul class="muted">
+                  <li>Limit sodium intake to < 2g/day</li>
+                  <li>Exercise 30 minutes daily</li>
+                  <li>Maintain healthy weight</li>
+                  <li>Limit alcohol consumption</li>
+                  <li>Manage stress levels</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Arthritis Services -->
+        <div id="arthritis-services" class="card span-6" style="display: none;">
+          <h3><i class="fas fa-wheelchair"></i> Joint Health Management</h3>
+          <div class="service-grid">
+            <div class="service-card">
+              <h4><i class="fas fa-chart-area"></i> Pain Tracking</h4>
+              <div class="pain-tracker">
+                <label>Pain Level (1-10)<br>
+                  <input type="range" id="pain-level" min="1" max="10" value="5" style="width:100%;">
+                  <span id="pain-value">5</span>
+                </label>
+                <label>Affected Joints<br>
+                  <select id="affected-joints" multiple style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+                    <option>Knees</option>
+                    <option>Hips</option>
+                    <option>Hands</option>
+                    <option>Spine</option>
+                    <option>Shoulders</option>
+                  </select>
+                </label>
+                <button class="btn primary" onclick="savePainReading()">Log Pain</button>
+              </div>
+            </div>
+            <div class="service-card">
+              <h4><i class="fas fa-running"></i> Joint Exercises</h4>
+              <div class="exercise-guide">
+                <h5>Recommended Exercises:</h5>
+                <ul class="muted">
+                  <li>Range of motion exercises</li>
+                  <li>Low-impact cardio (swimming, walking)</li>
+                  <li>Strength training</li>
+                  <li>Stretching routines</li>
+                </ul>
+                <button class="btn ghost" onclick="showExerciseVideo()">Watch Exercise Video</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Thyroid Services -->
+        <div id="thyroid-services" class="card span-6" style="display: none;">
+          <h3><i class="fas fa-balance-scale"></i> Thyroid Management</h3>
+          <div class="service-grid">
+            <div class="service-card">
+              <h4><i class="fas fa-pills"></i> Medication Schedule</h4>
+              <div class="medication-tracker">
+                <label>Medication Name<br>
+                  <input type="text" id="thyroid-med" placeholder="e.g., Levothyroxine" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+                </label>
+                <label>Dosage<br>
+                  <input type="text" id="thyroid-dose" placeholder="e.g., 50mcg" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+                </label>
+                <label>Time to Take<br>
+                  <input type="time" id="thyroid-time" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+                </label>
+                <button class="btn primary" onclick="saveThyroidMed()">Set Reminder</button>
+              </div>
+            </div>
+            <div class="service-card">
+              <h4><i class="fas fa-thermometer-half"></i> Symptom Tracker</h4>
+              <div class="symptom-tracker">
+                <label>Energy Level (1-10)<br>
+                  <input type="range" id="energy-level" min="1" max="10" value="5" style="width:100%;">
+                  <span id="energy-value">5</span>
+                </label>
+                <label>Weight (kg)<br>
+                  <input type="number" id="weight" placeholder="Enter weight" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+                </label>
+                <button class="btn primary" onclick="saveThyroidSymptoms()">Log Symptoms</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Heart Disease Services -->
+        <div id="heart-services" class="card span-6" style="display: none;">
+          <h3><i class="fas fa-heart"></i> Cardiovascular Health</h3>
+          <div class="service-grid">
+            <div class="service-card">
+              <h4><i class="fas fa-heartbeat"></i> Heart Rate Monitoring</h4>
+              <div class="heart-monitor">
+                <label>Resting Heart Rate (bpm)<br>
+                  <input type="number" id="resting-hr" placeholder="72" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+                </label>
+                <label>Activity Level<br>
+                  <select id="activity-level" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+                    <option>Resting</option>
+                    <option>Light Activity</option>
+                    <option>Moderate Activity</option>
+                    <option>Vigorous Activity</option>
+                  </select>
+                </label>
+                <button class="btn primary" onclick="saveHeartRate()">Record</button>
+              </div>
+            </div>
+            <div class="service-card">
+              <h4><i class="fas fa-dumbbell"></i> Exercise Plan</h4>
+              <div class="exercise-plan">
+                <h5>Cardio Recommendations:</h5>
+                <ul class="muted">
+                  <li>30 minutes moderate cardio daily</li>
+                  <li>Walking, cycling, swimming</li>
+                  <li>Target heart rate: 50-70% max</li>
+                  <li>Gradual intensity increase</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mental Health Services -->
+        <div id="mental-services" class="card span-6" style="display: none;">
+          <h3><i class="fas fa-brain"></i> Mental Wellness</h3>
+          <div class="service-grid">
+            <div class="service-card">
+              <h4><i class="fas fa-smile"></i> Mood Tracker</h4>
+              <div class="mood-tracker">
+                <label>Current Mood<br>
+                  <select id="current-mood" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+                    <option>😊 Happy</option>
+                    <option>😐 Neutral</option>
+                    <option>😟 Anxious</option>
+                    <option>😢 Sad</option>
+                    <option>😴 Tired</option>
+                    <option>😤 Angry</option>
+                  </select>
+                </label>
+                <label>Stress Level (1-10)<br>
+                  <input type="range" id="stress-level" min="1" max="10" value="5" style="width:100%;">
+                  <span id="stress-value">5</span>
+                </label>
+                <label>Notes<br>
+                  <textarea id="mood-notes" rows="3" placeholder="How are you feeling today?" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)"></textarea>
+                </label>
+                <button class="btn primary" onclick="saveMoodEntry()">Log Mood</button>
+              </div>
+            </div>
+            <div class="service-card">
+              <h4><i class="fas fa-spa"></i> Stress Management</h4>
+              <div class="stress-management">
+                <h5>Quick Stress Relief:</h5>
+                <ul class="muted">
+                  <li>Deep breathing exercises</li>
+                  <li>Progressive muscle relaxation</li>
+                  <li>Mindfulness meditation</li>
+                  <li>Physical exercise</li>
+                </ul>
+                <button class="btn ghost" onclick="startBreathingExercise()">Start Breathing Exercise</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Allergies Services -->
+        <div id="allergies-services" class="card span-6" style="display: none;">
+          <h3><i class="fas fa-allergies"></i> Allergy Management</h3>
+          <div class="service-grid">
+            <div class="service-card">
+              <h4><i class="fas fa-exclamation-triangle"></i> Allergy Tracker</h4>
+              <div class="allergy-tracker">
+                <label>Allergen<br>
+                  <input type="text" id="allergen" placeholder="e.g., Pollen, Dust, Food" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+                </label>
+                <label>Severity (1-10)<br>
+                  <input type="range" id="allergy-severity" min="1" max="10" value="5" style="width:100%;">
+                  <span id="allergy-severity-value">5</span>
+                </label>
+                <label>Symptoms<br>
+                  <textarea id="allergy-symptoms" rows="2" placeholder="Describe your symptoms" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)"></textarea>
+                </label>
+                <button class="btn primary" onclick="saveAllergyEntry()">Log Allergy</button>
+              </div>
+            </div>
+            <div class="service-card">
+              <h4><i class="fas fa-pills"></i> Medication Reminders</h4>
+              <div class="allergy-meds">
+                <label>Antihistamine<br>
+                  <input type="text" id="antihistamine" placeholder="e.g., Cetirizine" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+                </label>
+                <label>Dosage<br>
+                  <input type="text" id="allergy-dose" placeholder="e.g., 10mg daily" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+                </label>
+                <button class="btn primary" onclick="setAllergyReminder()">Set Reminder</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pregnancy Services -->
+        <div id="pregnancy-services" class="card span-6" style="display: none;">
+          <h3><i class="fas fa-baby"></i> Prenatal Care</h3>
+          <div class="service-grid">
+            <div class="service-card">
+              <h4><i class="fas fa-calendar-check"></i> Appointment Tracker</h4>
+              <div class="prenatal-appointments">
+                <label>Next Appointment<br>
+                  <input type="datetime-local" id="prenatal-appt" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+                </label>
+                <label>Doctor<br>
+                  <input type="text" id="prenatal-doctor" placeholder="Dr. Name" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+                </label>
+                <label>Purpose<br>
+                  <select id="appt-purpose" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+                    <option>Regular Checkup</option>
+                    <option>Ultrasound</option>
+                    <option>Blood Test</option>
+                    <option>Consultation</option>
+                  </select>
+                </label>
+                <button class="btn primary" onclick="savePrenatalAppt()">Schedule</button>
+              </div>
+            </div>
+            <div class="service-card">
+              <h4><i class="fas fa-chart-line"></i> Health Tracking</h4>
+              <div class="prenatal-tracking">
+                <label>Weight (kg)<br>
+                  <input type="number" id="prenatal-weight" placeholder="Enter weight" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+                </label>
+                <label>Blood Pressure<br>
+                  <input type="text" id="prenatal-bp" placeholder="120/80" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+                </label>
+                <label>Weeks Pregnant<br>
+                  <input type="number" id="pregnancy-weeks" placeholder="Enter weeks" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,.2)">
+                </label>
+                <button class="btn primary" onclick="savePrenatalData()">Record</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card span-12">
+          <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+          <div class="quick-actions">
+            <button class="btn primary" onclick="exportHealthData()"><i class="fas fa-download"></i> Export Health Data</button>
+            <button class="btn ghost" onclick="setMedicationReminders()"><i class="fas fa-bell"></i> Set Reminders</button>
+            <button class="btn ghost" onclick="viewHealthTrends()"><i class="fas fa-chart-line"></i> View Trends</button>
+            <button class="btn ghost" onclick="shareWithDoctor()"><i class="fas fa-share"></i> Share with Doctor</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    © <span id="year"></span> MediNova — Your smart healthcare companion. This site is for educational purposes only and does not provide medical advice.
+  </footer>
+
+  <!-- TTS Controls -->
+  <div class="tts-controls" id="tts-controls" style="display: none;">
+    <button class="tts-btn" onclick="ttsPage()"><i class="fas fa-volume-up"></i></button>
+    <button class="tts-btn" onclick="stopTTS()"><i class="fas fa-stop"></i></button>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">Saved!</div>
+  
+  <!-- SOS Modal -->
+<div class="sos-modal" id="sosModal">
+    <div class="sos-content">
+      <button class="sos-close" onclick="closeSOS()">×</button>
+      <h2><i class="fas fa-exclamation-triangle"></i> EMERGENCY SOS</h2>
+      <p class="muted">Choose an action to get immediate help:</p>
+      <div class="sos-actions">
+        <button class="sos-btn emergency" onclick="callEmergency()">
+          <i class="fas fa-phone"></i> Call Emergency (112/108)
+        </button>
+        <button class="sos-btn contact" onclick="callEmergencyContacts()">
+          <i class="fas fa-address-book"></i> Call Emergency Contacts
+        </button>
+        <button class="sos-btn hospital" onclick="findNearestHospital()">
+          <i class="fas fa-hospital"></i> Find Nearest Hospital
+        </button>
+        <button class="sos-btn records" onclick="sendMedicalRecords()">
+          <i class="fas fa-file-medical"></i> Send Medical Records
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Authentication state
+  let isAuthenticated = false;
+  let currentUser = null;
+  let ttsActive = false;
+  
+  // Check if user was previously logged in
+  window.addEventListener('DOMContentLoaded', () => {
+    const savedUser = localStorage.getItem('mn_user');
+    if (savedUser) {
+      currentUser = JSON.parse(savedUser);
+      isAuthenticated = true;
+      showMainApp();
+    } else {
+      document.getElementById('auth-container').style.display = 'flex';
+      document.getElementById('main-app').style.display = 'none';
+      const sb=document.querySelector('aside.sidebar'); if(sb) sb.style.display='none';
+    }
+    
+    // Set up auth tabs
+    document.querySelectorAll('.auth-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const tabName = tab.getAttribute('data-tab');
+        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(`${tabName}-form`).classList.add('active');
+      });
+    });
+    
+    // Generate initial CAPTCHAs
+    generateCaptcha('login');
+    generateCaptcha('signup');
+    
+    // Set footer year
+    document.getElementById('year').textContent = new Date().getFullYear();
+  });
+  
+  // Generate CAPTCHA
+  function generateCaptcha(type) {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let captcha = '';
+    for (let i = 0; i < 4; i++) {
+      captcha += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    document.getElementById(`${type}-captcha`).textContent = captcha;
+  }
+  
+  // Verify CAPTCHA
+  function togglePw(id){ const el=document.getElementById(id); el.type = el.type==='password'?'text':'password'; }
+  function verifyCaptcha(type) {
+    const captchaElement = document.getElementById(`${type}-captcha`);
+    const inputElement = document.getElementById(`${type}-captcha-input`);
+    
+    if (inputElement.value.toUpperCase() === captchaElement.textContent) {
+      if(type==='signup'){
+        const pw=document.getElementById('signup-password').value;
+        const pw2=document.getElementById('signup-password2').value;
+        const email=document.getElementById('signup-email').value.trim().toLowerCase();
+        const name=document.getElementById('signup-name').value.trim();
+        const errEl=document.getElementById('signup-error'); errEl.textContent='';
+        if(pw.length<8 || !/[0-9]/.test(pw)){ errEl.textContent='Password must be at least 8 characters with a number.'; return; }
+        if(pw!==pw2){ errEl.textContent='Passwords do not match.'; return; }
+        const users=JSON.parse(localStorage.getItem('mn_users')||'{}');
+        if(users[email]){ errEl.textContent='An account with this email already exists.'; return; }
+        users[email]={name, email, pwHash:btoa(pw)}; localStorage.setItem('mn_users', JSON.stringify(users));
+      }
+      if(type==='login'){
+        const email=document.getElementById('login-email').value.trim().toLowerCase();
+        const pw=document.getElementById('login-password').value;
+        const remember=document.getElementById('login-remember').checked;
+        const users=JSON.parse(localStorage.getItem('mn_users')||'{}');
+        const errEl=document.getElementById('login-error'); errEl.textContent='';
+        if(!users[email] || users[email].pwHash!==btoa(pw)){ errEl.textContent='Invalid email or password.'; return; }
+        if(remember) localStorage.setItem('mn_last_email', email);
+      }
+      // Show OTP verification
+      document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+      document.getElementById('otp-verify').classList.add('active');
+      
+      // Generate and "send" OTP (in a real app, this would go to the server)
+      generateOTP();
+      toast('OTP sent to your email');
+    } else {
+      toast('Invalid CAPTCHA. Please try again.');
+      generateCaptcha(type);
+      inputElement.value = '';
+    }
+  }
+  
+  // Generate OTP
+  function generateOTP() {
+    const inputs = document.querySelectorAll('.otp-input');
+    inputs.forEach(input => input.value = '');
+    
+    // In a real app, this would be generated server-side and sent via email/SMS
+    const otp = '123456'; // Demo OTP
+    localStorage.setItem('mn_otp', otp);
+  }
+  
+  // Verify OTP
+  function verifyOTP() {
+    const inputs = document.querySelectorAll('.otp-input');
+    let enteredOtp = '';
+    inputs.forEach(input => enteredOtp += input.value);
+    
+    const storedOtp = localStorage.getItem('mn_otp');
+    
+    if (enteredOtp === storedOtp) {
+      // Successful authentication
+      isAuthenticated = true;
+      const loginEmail=document.getElementById('login-email').value.trim().toLowerCase();
+      const signupEmail=document.getElementById('signup-email').value.trim().toLowerCase();
+      const users=JSON.parse(localStorage.getItem('mn_users')||'{}');
+      const email = loginEmail || signupEmail;
+      const user = users[email] || { name: document.getElementById('signup-name').value || 'User', email };
+      currentUser = { name:user.name, email:user.email };
+      
+      localStorage.setItem('mn_user', JSON.stringify(currentUser));
+      showMainApp();
+      toast('Login successful!');
+    } else {
+      toast('Invalid OTP. Please try again.');
+      inputs.forEach(input => input.value = '');
+    }
+  }
+  
+  // Resend OTP
+  function resendOTP() {
+    generateOTP();
+    toast('New OTP sent to your email');
+  }
+  
+  // Show main application
+  function showMainApp() {
+    document.getElementById('auth-container').style.display = 'none';
+    document.getElementById('main-app').style.display = 'block';
+    const sb=document.querySelector('aside.sidebar'); if(sb) sb.style.display='block';
+    
+    // Initialize the app
+    initApp();
+  }
+  
+  // Logout
+  function logout() {
+    isAuthenticated = false;
+    currentUser = null;
+    localStorage.removeItem('mn_user');
+    document.getElementById('auth-container').style.display = 'flex';
+    document.getElementById('main-app').style.display = 'none';
+    const sb=document.querySelector('aside.sidebar'); if(sb) sb.style.display='none';
+    
+    // Reset auth forms
+    document.querySelectorAll('form').forEach(form => form.reset());
+    document.querySelectorAll('.auth-tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+    document.querySelector('.auth-tab[data-tab="login"]').classList.add('active');
+    document.getElementById('login-form').classList.add('active');
+    
+    toast('Logged out successfully');
+  }
+  
+  // --- Router (hash-based multi-page) ---
+  function initApp() {
+    const pages = Array.from(document.querySelectorAll('.page'));
+    function go(hash){ location.hash = hash }
+    function route(){
+      const h = location.hash || '#home';
+      pages.forEach(p => p.classList.toggle('active', `#${p.id}`===h));
+      window.scrollTo({top:0, behavior:'smooth'});
+    }
+    window.addEventListener('hashchange', route); 
+    route();
+    
+    // Initialize other app components
+    renderAppts(); updateApptReminders(); scheduleNextToastReminder(); renderMiniAppts(); renderMeds(); setDashTab('meds');
+    renderICE();
+    renderRecs();
+    renderMoods();
+    renderThread();
+    setupCustomization();
+    initPersonalizedDashboard();
+  }
+
+  // --- Theme & Contrast ---
+  function toggleTheme(){
+    const cur = document.body.getAttribute('data-theme');
+    document.body.setAttribute('data-theme', cur === 'light' ? '' : 'light');
+    localStorage.setItem('mn_theme', cur === 'light' ? '' : 'light');
+    toast('Theme toggled');
+  }
+  
+  function toggleContrast(){
+    const cur = document.body.getAttribute('data-contrast');
+    document.body.setAttribute('data-contrast', cur === 'high' ? '' : 'high');
+    localStorage.setItem('mn_contrast', cur === 'high' ? '' : 'high');
+    toast('Contrast toggled');
+  }
+  
+  // Apply saved theme and contrast
+  const savedTheme = localStorage.getItem('mn_theme');
+  const savedContrast = localStorage.getItem('mn_contrast');
+  if (savedTheme) document.body.setAttribute('data-theme', savedTheme);
+  if (savedContrast) document.body.setAttribute('data-contrast', savedContrast);
+
+  // --- i18n (EN/HI) ---
+  const dict = {
+    en: { 
+      tagline:'Smart care, simple clicks.', 
+      hero:'Your one‑stop smart healthcare companion.', 
+      lead:'Book doctors, track health, learn, and get help—securely and accessibly.',
+      nav_home:'Home', nav_services:'Services', nav_health:'Health', nav_wellbeing:'Well‑being', nav_resources:'Resources', nav_contact:'Contact', nav_customize:'Customize',
+      nav_dashboard:'Dashboard',
+      sos_title:'SOS — Call Ambulance'
+      // Add more translations as needed
+    },
+    hi: { 
+      tagline:'स्मार्ट देखभाल, आसान क्लिक।', 
+      hero:'आपका स्मार्ट हेल्थकेयर साथी, एक ही स्थान पर।', 
+      lead:'डॉक्टर बुक करें, स्वास्थ्य ट्रैक करें, सीखें और सहायता पाएं—सुरक्षित और सुलभ।',
+      nav_home:'होम', nav_services:'सेवाएँ', nav_health:'स्वास्थ्य', nav_dashboard:'डैशबोर्ड', nav_wellbeing:'कल्याण', nav_resources:'संसाधन', nav_contact:'संपर्क', nav_customize:'अनुकूलन',
+      sos_title:'एसओएस — एम्बुलेंस कॉल करें'
+      // Add more translations as needed
+    }
+  };
+  
+  const langSel = document.getElementById('lang');
+  langSel.addEventListener('change', ()=>applyLang(langSel.value));
+  
+  function applyLang(code){
+    const map = dict[code] || dict.en;
+    document.querySelectorAll('[data-i18n]').forEach(el=>{
+      const k = el.getAttribute('data-i18n');
+      if(map[k]) el.textContent = map[k];
+    });
+    // Attributes (titles, placeholders)
+    document.querySelectorAll('[data-i18n-title]').forEach(el=>{
+      const k = el.getAttribute('data-i18n-title'); if(map[k]) el.setAttribute('title', map[k]);
+    });
+    
+    // Update page titles and other elements as needed
+    if (code === 'hi') {
+      document.title = 'MediNova — स्मार्ट स्वास्थ्य सेवा';
+    } else {
+      document.title = 'MediNova — Smart Healthcare';
+    }
+  }
+
+  // --- TTS Controls ---
+  function toggleTTS() {
+    ttsActive = !ttsActive;
+    document.getElementById('tts-controls').style.display = ttsActive ? 'flex' : 'none';
+    toast(ttsActive ? 'Text-to-speech enabled' : 'Text-to-speech disabled');
+  }
+  
+  function ttsPage() {
+    const activePage = document.querySelector('.page.active');
+    const text = activePage.textContent.replace(/\s+/g, ' ').trim();
+    tts(text);
+  }
+  
+  function stopTTS() {
+    speechSynthesis.cancel();
+  }
+  
+  function tts(text){ 
+    if(!text) return; 
+    stopTTS();
+    const u = new SpeechSynthesisUtterance(text); 
+    speechSynthesis.speak(u); 
+  }
+
+  // --- Toast ---
+  const toastEl = document.getElementById('toast');
+  let toastTimer;
+  function toast(msg){
+    toastEl.textContent = msg; toastEl.style.display='block';
+    clearTimeout(toastTimer); toastTimer = setTimeout(()=>toastEl.style.display='none', 3000);
+  }
+
+  /* ECG animation removed */
+
+  // --- Appointments ---
+  const apptKey = 'mn_appts';
+  const apptForm = document.getElementById('apptForm');
+  apptForm.addEventListener('submit', e=>{
+    e.preventDefault(); const f = new FormData(apptForm);
+    const rec = { id:crypto.randomUUID(), name:f.get('name'), doctor:f.get('doctor')||'', hospital:f.get('hospital')||'', spec:f.get('spec'), dt:f.get('dt'), mode:f.get('mode') };
+    const all = JSON.parse(localStorage.getItem(apptKey)||'[]'); all.push(rec); localStorage.setItem(apptKey, JSON.stringify(all));
+    apptForm.reset(); toast('Appointment saved'); renderAppts(); updateApptReminders(); scheduleNextToastReminder();
+  });
+  
+  function delAppt(id){
+    const all = JSON.parse(localStorage.getItem(apptKey)||'[]').filter(x=>x.id!==id);
+    localStorage.setItem(apptKey, JSON.stringify(all)); renderAppts();
+  }
+  
+  function renderAppts(){
+    const tbody = document.querySelector('#apptTable tbody'); tbody.innerHTML='';
+    const spec = document.getElementById('filterSpec').value;
+    const rows = JSON.parse(localStorage.getItem(apptKey)||'[]').filter(x=>!spec||x.spec===spec);
+    for(const r of rows){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${r.name}</td><td>${r.doctor||'-'}</td><td>${r.hospital||'-'}</td><td>${r.spec}</td><td>${new Date(r.dt).toLocaleString()}</td><td>${r.mode}</td><td><button class=\"btn ghost\" onclick=\"editAppt('${r.id}')\">Reschedule</button> <button class=\"btn ghost\" onclick=\"delAppt('${r.id}')\">Delete</button></td>`
+      tbody.appendChild(tr);
+    }
+  }
+
+  function editAppt(id){
+    const all = JSON.parse(localStorage.getItem(apptKey)||'[]');
+    const idx = all.findIndex(x=>x.id===id); if(idx===-1) return;
+    const rec = all[idx];
+    // Prefill form
+    apptForm.elements['name'].value = rec.name||'';
+    apptForm.elements['spec'].value = rec.spec||'';
+    apptForm.elements['mode'].value = rec.mode||'';
+    apptForm.elements['dt'].value = rec.dt||'';
+    apptForm.elements['doctor'].value = rec.doctor||'';
+    apptForm.elements['hospital'].value = rec.hospital||'';
+    // Remove existing so saving replaces it
+    all.splice(idx,1); localStorage.setItem(apptKey, JSON.stringify(all));
+    toast('Edit the fields and Save to reschedule');
+    window.location.hash = '#appointments';
+  }
+
+  // Reminders list (next 24h) and toast at 30min
+  function updateApptReminders(){
+    const el = document.getElementById('apptReminders'); if(!el) return; el.innerHTML='';
+    const now = Date.now(); const day = 24*60*60*1000; 
+    const rows = JSON.parse(localStorage.getItem(apptKey)||'[]')
+      .map(r=>({ ...r, ts: new Date(r.dt).getTime() }))
+      .filter(r=>!isNaN(r.ts) && r.ts>now && (r.ts-now)<=day)
+      .sort((a,b)=>a.ts-b.ts);
+    if(!rows.length){ el.innerHTML = '<li>No upcoming appointments in the next 24 hours.</li>'; return; }
+    rows.forEach(r=>{
+      const li = document.createElement('li');
+      const when = new Date(r.ts).toLocaleString();
+      li.textContent = `${when} — ${r.name} with ${r.doctor||'doctor'} at ${r.hospital||'clinic'} (${r.mode})`;
+      el.appendChild(li);
+    });
+  }
+
+  const reminderSeenKey = 'mn_appt_toast_seen_until';
+  function scheduleNextToastReminder(){
+    // Avoid duplicate timers in this simple demo
+    if(window.__apptReminderTimer) clearTimeout(window.__apptReminderTimer);
+    const now = Date.now();
+    const seenUntil = parseInt(localStorage.getItem(reminderSeenKey)||'0',10);
+    const soon = JSON.parse(localStorage.getItem(apptKey)||'[]')
+      .map(r=>({ ...r, ts:new Date(r.dt).getTime() }))
+      .filter(r=>!isNaN(r.ts) && r.ts>now)
+      .sort((a,b)=>a.ts-b.ts)[0];
+    if(!soon) return;
+    const msUntil30 = soon.ts - 30*60*1000 - now; // 30 minutes before
+    if(soon.ts <= seenUntil) return; // already acknowledged
+    if(msUntil30 <= 0){
+      toast(`Reminder: ${soon.name}'s appointment with ${soon.doctor||'doctor'} at ${soon.hospital||'clinic'} in 30 minutes.`);
+      localStorage.setItem(reminderSeenKey, String(soon.ts));
+      // Schedule next after a short delay to avoid tight loops
+      window.__apptReminderTimer = setTimeout(scheduleNextToastReminder, 5000);
+    } else {
+      window.__apptReminderTimer = setTimeout(scheduleNextToastReminder, Math.min(msUntil30, 60*1000));
+    }
+  }
+
+  // --- Symptom Checker (rule-based demo) ---
+  function checkSymptoms(){
+    const s = document.getElementById('symptom1').value;
+    const d = parseInt(document.getElementById('duration').value||'0',10);
+    const a = document.getElementById('agegrp').value;
+    const out = document.getElementById('symOut'); out.innerHTML='';
+    const tips = [];
+    const push=(t)=>{ const li=document.createElement('li'); li.textContent=t; out.appendChild(li); }
+    if(s==='Fever'){
+      tips.push('Hydration, rest, and temperature monitoring.');
+      if(d>=3) tips.push('Fever > 3 days: consider clinical evaluation.');
+      if(a==='Child' && d>=1) tips.push('Child with persistent fever: consult pediatrician.');
+    }
+    if(s==='Chest Pain'){
+      tips.push('If severe, radiating, or with breathlessness: emergency care immediately.');
+      tips.push('Mild musculoskeletal pain: rest, avoid strain; evaluate if persistent.');
+    }
+    if(s==='Rash / Itching'){
+      tips.push('Consider allergens/new products; mild antihistamines (per label) may help.');
+    }
+    if(s==='Headache'){
+      tips.push('Hydrate, rest eyes; track triggers (screen time, sleep).');
+      if(d>=2) tips.push('Persistent headache: medical advice recommended.');
+    }
+    if(s==='Abdominal Pain'){
+      tips.push('Note location & relation to meals; avoid irritants; seek care if worsening.');
+    }
+    if(s==='Shortness of Breath'){
+      tips.push('Potentially serious—use Emergency Mode if acute.');
+    }
+    tips.forEach(push);
+    if(!tips.length) push('No suggestions available.');
+  }
+
+  // --- Emergency Locator ---
+  function openNearest(type){
+    if(!navigator.geolocation){ document.getElementById('geo').textContent='Geolocation not supported.'; return; }
+    navigator.geolocation.getCurrentPosition(pos=>{
+      const {latitude, longitude} = pos.coords;
+      document.getElementById('geo').textContent = `Lat ${latitude.toFixed(4)}, Lng ${longitude.toFixed(4)}`;
+      const q = encodeURIComponent(type);
+      const url = `https://www.google.com/maps/search/${q}/@${latitude},${longitude},15z`;
+      window.open(url, '_blank');
+    }, err=>{
+      document.getElementById('geo').textContent = 'Location permission denied.';
+    });
+  }
+
+  // ICE Contacts
+  const iceKey='mn_ice';
+  function sos(){
+    // Prompt to call emergency number
+    const emergencyNumber = navigator.language && navigator.language.startsWith('en-IN') ? '108' : '112';
+    window.open(`tel:${emergencyNumber}`);
+    // Also show saved ICE contacts as quick-call prompts
+    const ices = JSON.parse(localStorage.getItem(iceKey)||'[]');
+    if(ices.length){
+      const names = ices.map(x=>`${x.n} (${x.p})`).join(', ');
+      toast(`Also notify: ${names}`);
+    } else {
+      toast('No emergency contacts saved yet. Add some under Emergency Mode.');
+    }
+  }
+  const iceForm = document.getElementById('iceForm');
+  iceForm.addEventListener('submit', e=>{
+    e.preventDefault(); const f = new FormData(iceForm);
+    const rec = { id: crypto.randomUUID(), n: f.get('n'), p: f.get('p') };
+    const all = JSON.parse(localStorage.getItem(iceKey)||'[]'); all.push(rec); localStorage.setItem(iceKey, JSON.stringify(all)); iceForm.reset(); renderICE(); toast('Contact saved');
+  });
+  
+  function delICE(id){ const all = JSON.parse(localStorage.getItem(iceKey)||'[]').filter(x=>x.id!==id); localStorage.setItem(iceKey, JSON.stringify(all)); renderICE(); }
+  
+  function renderICE(){ 
+    const ul=document.getElementById('iceList'); ul.innerHTML=''; 
+    (JSON.parse(localStorage.getItem(iceKey)||'[]')).forEach(x=>{ 
+      const li=document.createElement('li'); 
+      li.innerHTML=`${x.n} — <a href="tel:${x.p}">${x.p}</a> <button class='btn ghost' onclick="delICE('${x.id}')">Delete</button>`; 
+      ul.appendChild(li); 
+    }); 
+  }
+
+  // --- Records Vault (metadata only) ---
+  const recKey='mn_records';
+  const recForm=document.getElementById('recForm');
+  recForm.addEventListener('submit', e=>{
+    e.preventDefault(); const f=new FormData(recForm);
+    const file = recForm.querySelector('input[name="file"]').files[0];
+    const baseRec={ id:crypto.randomUUID(), title:f.get('title'), tag:f.get('tag'), date:new Date().toISOString(), fileName: file? file.name : '(no file in demo)' };
+    if(file && file.type === 'application/pdf'){
+      const reader = new FileReader();
+      reader.onload = () => {
+        const rec = { ...baseRec, dataUrl: reader.result };
+        const all=JSON.parse(localStorage.getItem(recKey)||'[]'); all.push(rec); localStorage.setItem(recKey, JSON.stringify(all)); recForm.reset(); renderRecs(); toast('PDF saved locally');
+      };
+      reader.readAsDataURL(file);
+    } else {
+      const all=JSON.parse(localStorage.getItem(recKey)||'[]'); all.push(baseRec); localStorage.setItem(recKey, JSON.stringify(all)); recForm.reset(); renderRecs(); toast('Record added');
+    }
+  });
+  
+  function delRec(id){ const all=JSON.parse(localStorage.getItem(recKey)||'[]').filter(x=>x.id!==id); localStorage.setItem(recKey, JSON.stringify(all)); renderRecs(); }
+  
+  function renderRecs(){
+    const tag=document.getElementById('recFilter').value.trim().toLowerCase();
+    const tbody=document.querySelector('#recTable tbody'); tbody.innerHTML='';
+    (JSON.parse(localStorage.getItem(recKey)||'[]')).filter(r=>!tag|| (r.tag||'').toLowerCase().includes(tag)).forEach(r=>{
+      const tr=document.createElement('tr');
+      const viewBtn = r.dataUrl ? `<button class='btn ghost' onclick=\"viewRec('${r.id}')\">View</button>` : '';
+      tr.innerHTML=`<td>${r.title}</td><td>${r.tag||'-'}</td><td>${new Date(r.date).toLocaleString()}</td><td><span class='pill'>${r.fileName}</span> ${viewBtn} <button class='btn ghost' onclick=\"delRec('${r.id}')\">Delete</button></td>`;
+      tbody.appendChild(tr);
+    });
+  }
+  function viewRec(id){
+    const rec = (JSON.parse(localStorage.getItem(recKey)||'[]')).find(x=>x.id===id);
+    if(rec && rec.dataUrl){
+      const w = window.open(rec.dataUrl, '_blank', 'noopener');
+      if(!w){ toast('Popup blocked. Please allow popups to view the PDF.'); }
+    } else {
+      toast('File preview not available for this record.');
+    }
+  }
+
+  // --- Dashboard (tabs, meds, mini appointments, journal) ---
+  function setDashTab(tab){
+    const ids=['meds','vault','miniAppt','journal','export'];
+    ids.forEach(id=>{
+      const el = document.getElementById('dash-'+id);
+      if(el) el.style.display = (id===tab?'block':'none');
+    });
+    document.querySelectorAll('[role="tablist"] [role="tab"]').forEach(btn=>{
+      const isActive = btn.getAttribute('onclick')?.includes(`'${tab}'`);
+      btn.className = 'btn ' + (isActive?'primary':'ghost');
+      btn.setAttribute('aria-selected', String(isActive));
+    });
+  }
+
+  // Medications
+  const medsKey='mn_meds';
+  const medForm=document.getElementById('medForm');
+  if(medForm){
+    medForm.addEventListener('submit', e=>{
+      e.preventDefault(); const f=new FormData(medForm);
+      const rec={ id:crypto.randomUUID(), n:f.get('n'), d:f.get('d'), s:f.get('s'), e:f.get('e') };
+      const all=JSON.parse(localStorage.getItem(medsKey)||'[]'); all.push(rec); localStorage.setItem(medsKey, JSON.stringify(all)); medForm.reset(); renderMeds();
+    });
+  }
+  function delMed(id){ const all=JSON.parse(localStorage.getItem(medsKey)||'[]').filter(x=>x.id!==id); localStorage.setItem(medsKey, JSON.stringify(all)); renderMeds(); }
+  function renderMeds(){ const tb=document.querySelector('#medTable tbody'); if(!tb) return; tb.innerHTML=''; (JSON.parse(localStorage.getItem(medsKey)||'[]')).forEach(x=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>${x.n||''}</td><td>${x.d||''}</td><td>${x.s||''}</td><td>${x.e||''}</td><td><button class="btn ghost" onclick=\"delMed('${x.id}')\">Delete</button></td>`; tb.appendChild(tr); }); }
+
+  // Mini appointments (reuse apptKey)
+  function renderMiniAppts(){
+    const tb=document.querySelector('#miniApptTable tbody'); if(!tb) return; tb.innerHTML='';
+    const rows=(JSON.parse(localStorage.getItem('mn_appts')||'[]')).sort((a,b)=>new Date(a.dt)-new Date(b.dt)).slice(0,5);
+    rows.forEach(r=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>${new Date(r.dt).toLocaleString()}</td><td>${r.name}</td><td>${r.doctor||'-'}</td><td>${r.hospital||'-'}</td><td>${r.mode}</td>`; tb.appendChild(tr); });
+  }
+
+  // Journal
+  const journalKey='mn_journal';
+  function saveJournal(){
+    const d=document.getElementById('jDate').value || new Date().toISOString().slice(0,10);
+    const s=document.getElementById('jSym').value; const sev=document.getElementById('jSev').value; const note=document.getElementById('jNote').value;
+    const all=JSON.parse(localStorage.getItem(journalKey)||'[]'); all.push({ id:crypto.randomUUID(), d,s,sev,note }); localStorage.setItem(journalKey, JSON.stringify(all));
+    document.getElementById('jSym').value=''; document.getElementById('jNote').value=''; renderJournal();
+  }
+  function delJournal(id){ const all=JSON.parse(localStorage.getItem(journalKey)||'[]').filter(x=>x.id!==id); localStorage.setItem(journalKey, JSON.stringify(all)); renderJournal(); }
+  function renderJournal(){
+    const tb=document.querySelector('#journalTable tbody'); if(!tb) return; tb.innerHTML='';
+    const f=(document.getElementById('jFilter')?.value||'').toLowerCase();
+    const cur=document.getElementById('jDate').value || new Date().toISOString().slice(0,10);
+    const rows=(JSON.parse(localStorage.getItem(journalKey)||'[]'))
+      .filter(x=>x.d===cur && (!f || (x.s||'').toLowerCase().includes(f)))
+      .sort((a,b)=>a.s.localeCompare(b.s));
+    rows.forEach(x=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>${x.d}</td><td>${x.s}</td><td>${x.sev}</td><td>${x.note||''}</td><td><button class=\"btn ghost\" onclick=\"delJournal('${x.id}')\">Delete</button></td>`; tb.appendChild(tr); });
+  }
+  function journalToday(){ document.getElementById('jDate').value=new Date().toISOString().slice(0,10); renderJournal(); }
+  function journalShift(days){ const el=document.getElementById('jDate'); const cur=new Date(el.value||Date.now()); cur.setDate(cur.getDate()+days); el.value=cur.toISOString().slice(0,10); renderJournal(); }
+  function journalPrevDay(){ journalShift(-1); }
+  function journalNextDay(){ journalShift(1); }
+
+  // Export journal as printable view (save as PDF from browser)
+  function exportJournalPDF(){
+    const from=document.getElementById('pdfFrom').value;
+    const to=document.getElementById('pdfTo').value;
+    const rows=(JSON.parse(localStorage.getItem('mn_journal')||'[]'))
+      .filter(x=>(!from || x.d>=from) && (!to || x.d<=to))
+      .sort((a,b)=>a.d.localeCompare(b.d));
+    const w=window.open('', 'print');
+    const css='body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;padding:24px;color:#111} h2{margin:0 0 12px} table{width:100%;border-collapse:collapse} th,td{border:1px solid #ccc;padding:8px;text-align:left} .muted{color:#666;font-size:12px;margin-bottom:8px}';
+    const html=`<html><head><title>Symptoms Journal</title><style>${css}</style></head><body>
+      <h2>Symptoms Journal</h2>
+      <div class="muted">Range: ${from||'—'} to ${to||'—'}</div>
+      <table><thead><tr><th>Date</th><th>Symptom</th><th>Severity</th><th>Notes</th></tr></thead><tbody>
+      ${rows.map(r=>`<tr><td>${r.d}</td><td>${r.s||''}</td><td>${r.sev||''}</td><td>${r.note||''}</td></tr>`).join('')}
+      </tbody></table>
+    </body></html>`;
+    w.document.open(); w.document.write(html); w.document.close(); w.focus(); w.print();
+  }
+
+  // --- Body facts + TTS ---
+  const factMap={
+    brain:'Brain: Control center for thoughts, memory, and movement.',
+    lungs:'Lungs: Exchange oxygen and carbon dioxide with every breath.',
+    heart:'Heart: Pumps ~5 liters of blood per minute at rest.',
+    liver:'Liver: Filters blood, metabolizes drugs, produces bile.',
+    stomach:'Stomach: Breaks down food with acid and enzymes.'
+  };
+  
+  document.getElementById('bodyMap').addEventListener('click', (e)=>{
+    const organ = e.target.getAttribute('data-organ'); if(!organ) return;
+    document.getElementById('facts').textContent = factMap[organ]||'No data';
+  });
+
+  // --- Mood tracker ---
+  const moodKey='mn_moods';
+  function saveMood(){ 
+    const sel=document.getElementById('moodSel').value; 
+    const note=document.getElementById('moodNote').value; 
+    const all=JSON.parse(localStorage.getItem(moodKey)||'[]'); 
+    all.unshift({t:new Date().toISOString(), m:sel, n:note}); 
+    localStorage.setItem(moodKey, JSON.stringify(all)); 
+    document.getElementById('moodNote').value=''; 
+    renderMoods(); 
+    toast('Mood saved'); 
+  }
+  
+  function clearMoods(){ localStorage.removeItem(moodKey); renderMoods(); }
+  
+  function renderMoods(){ 
+    const ul=document.getElementById('moodList'); ul.innerHTML=''; 
+    (JSON.parse(localStorage.getItem(moodKey)||'[]')).forEach(x=>{ 
+      const li=document.createElement('li'); 
+      li.textContent=`${new Date(x.t).toLocaleDateString()} — ${x.m} ${x.n? '— '+x.n:''}`; 
+      ul.appendChild(li); 
+    }); 
+  }
+
+  // --- Community Q&A (local) ---
+  const qKey='mn_thread';
+  function postQ(){ 
+    const v=document.getElementById('q').value.trim(); 
+    if(!v) return; 
+    const all=JSON.parse(localStorage.getItem(qKey)||'[]'); 
+    const auto = autoReply(v); 
+    all.unshift({id:crypto.randomUUID(), q:v, a:auto, t:new Date().toISOString()}); 
+    localStorage.setItem(qKey, JSON.stringify(all)); 
+    document.getElementById('q').value=''; 
+    renderThread(); 
+  }
+  
+  function renderThread(){ 
+    const ul=document.getElementById('thread'); ul.innerHTML=''; 
+    (JSON.parse(localStorage.getItem(qKey)||'[]')).forEach(x=>{ 
+      const li=document.createElement('li'); 
+      li.innerHTML = `<strong>Q:</strong> ${x.q}<br/><span class='muted'><strong>A:</strong> ${x.a}</span>`; 
+      ul.appendChild(li); 
+    }); 
+  }
+  
+  // Resources quick open
+  function openResource(kind){
+    if(kind==='firstaid'){
+      window.open('https://www.redcross.org/get-help/first-aid/first-aid-steps.html','_blank');
+      return;
+    }
+    if(kind==='chronic'){
+      window.open('https://www.cdc.gov/chronicdisease/index.htm','_blank');
+      return;
+    }
+    if(kind==='vaccination'){
+      window.open('https://www.cdc.gov/vaccines/schedules/','_blank');
+      return;
+    }
+  }
+  
+  function autoReply(text){
+    text=text.toLowerCase();
+    if(text.includes('allergy')) return 'Common tips: avoid triggers, saline rinse, antihistamines as labeled; consult doctor for persistent symptoms.';
+    if(text.includes('bp')||text.includes('pressure')) return 'For BP: reduce salt, regular exercise, monitor daily; seek medical advice for sustained readings.';
+    if(text.includes('diabetes')||text.includes('sugar')) return 'Balanced diet, regular checks (FBS, PP2BS, HbA1c), medication adherence, and activity are key.';
+    return 'Thanks for asking! Consider checking our Resources or consulting a professional for personalized advice.';
+  }
+
+  // --- Customization Page ---
+  function setupCustomization() {
+    const conditionCards = document.querySelectorAll('.condition-card');
+    conditionCards.forEach(card => {
+      card.addEventListener('click', () => {
+        card.classList.toggle('selected');
+      });
+    });
+    
+    // Load saved preferences
+    const savedConditions = JSON.parse(localStorage.getItem('mn_conditions') || '[]');
+    savedConditions.forEach(condition => {
+      const card = document.querySelector(`.condition-card[data-condition="${condition}"]`);
+      if (card) card.classList.add('selected');
+    });
+  }
+  
+  function saveCustomization() {
+    const selectedConditions = [];
+    document.querySelectorAll('.condition-card.selected').forEach(card => {
+      selectedConditions.push(card.getAttribute('data-condition'));
+    });
+    
+    localStorage.setItem('mn_conditions', JSON.stringify(selectedConditions));
+    toast('Preferences saved! The app will be customized for your needs.');
+    
+    // In a real app, this would filter content based on selected conditions
+  }
+  
+  function resetCustomization() {
+    document.querySelectorAll('.condition-card.selected').forEach(card => {
+      card.classList.remove('selected');
+    });
+    toast('Preferences reset');
+  }
+  
+  function showCustomisedServices() {
+    const selectedConditions = [];
+    document.querySelectorAll('.condition-card.selected').forEach(card => {
+      selectedConditions.push(card.getAttribute('data-condition'));
+    });
+    
+    if (selectedConditions.length === 0) {
+      toast('Please select at least one health condition first.');
+      return;
+    }
+    
+    // Save selected conditions for the personalized dashboard
+    localStorage.setItem('mn_selected_conditions', JSON.stringify(selectedConditions));
+    
+    // Redirect to personalized dashboard
+    window.location.hash = '#personalized-dashboard';
+    toast('Redirecting to your personalized dashboard...');
+    
+    // Show relevant services after a short delay
+    setTimeout(() => {
+      showPersonalizedServices(selectedConditions);
+    }, 500);
+  }
+  
+  function showPersonalizedServices(selectedConditions) {
+    // Hide all service sections first
+    const allServices = ['diabetes', 'hypertension', 'arthritis', 'thyroid', 'heart', 'mental', 'allergies', 'pregnancy'];
+    allServices.forEach(condition => {
+      const serviceElement = document.getElementById(`${condition}-services`);
+      if (serviceElement) {
+        serviceElement.style.display = 'none';
+      }
+    });
+    
+    // Show only selected services
+    selectedConditions.forEach(condition => {
+      const serviceElement = document.getElementById(`${condition}-services`);
+      if (serviceElement) {
+        serviceElement.style.display = 'block';
+      }
+    });
+    
+    toast(`Showing personalized services for: ${selectedConditions.join(', ')}`);
+  }
+
+  // --- Personalized Dashboard Functions ---
+  
+  // Diabetes Services
+  function saveGlucoseReading() {
+    const level = document.getElementById('glucose-level').value;
+    const time = document.getElementById('glucose-time').value;
+    
+    if (!level || !time) {
+      toast('Please enter both glucose level and time');
+      return;
+    }
+    
+    const reading = {
+      id: crypto.randomUUID(),
+      level: parseInt(level),
+      time: time,
+      date: new Date().toISOString().slice(0, 10),
+      timestamp: new Date().toISOString()
+    };
+    
+    const readings = JSON.parse(localStorage.getItem('mn_glucose_readings') || '[]');
+    readings.push(reading);
+    localStorage.setItem('mn_glucose_readings', JSON.stringify(readings));
+    
+    // Update display
+    updateGlucoseHistory();
+    document.getElementById('glucose-level').value = '';
+    document.getElementById('glucose-time').value = '';
+    
+    // Provide feedback based on glucose level
+    let feedback = '';
+    if (level < 70) feedback = 'Low blood sugar - consider eating something';
+    else if (level > 180) feedback = 'High blood sugar - monitor and consider medication';
+    else feedback = 'Blood sugar within normal range';
+    
+    toast(`Glucose reading saved: ${level} mg/dL - ${feedback}`);
+  }
+  
+  function updateGlucoseHistory() {
+    const readings = JSON.parse(localStorage.getItem('mn_glucose_readings') || '[]');
+    const historyEl = document.getElementById('glucose-history');
+    
+    if (readings.length === 0) {
+      historyEl.innerHTML = 'No readings recorded yet';
+      return;
+    }
+    
+    const recentReadings = readings.slice(-5).reverse();
+    historyEl.innerHTML = '<strong>Recent Readings:</strong><br>' + 
+      recentReadings.map(r => `${r.date} ${r.time}: ${r.level} mg/dL`).join('<br>');
+  }
+  
+  function saveMeal() {
+    const mealType = document.getElementById('meal-type').value;
+    const foodItem = document.getElementById('food-item').value;
+    const carbs = document.getElementById('carbs').value;
+    
+    if (!foodItem || !carbs) {
+      toast('Please enter food item and carbohydrates');
+      return;
+    }
+    
+    const meal = {
+      id: crypto.randomUUID(),
+      mealType: mealType,
+      foodItem: foodItem,
+      carbs: parseInt(carbs),
+      timestamp: new Date().toISOString()
+    };
+    
+    const meals = JSON.parse(localStorage.getItem('mn_meals') || '[]');
+    meals.push(meal);
+    localStorage.setItem('mn_meals', JSON.stringify(meals));
+    
+    document.getElementById('food-item').value = '';
+    document.getElementById('carbs').value = '';
+    toast(`Meal logged: ${mealType} - ${foodItem} (${carbs}g carbs)`);
+  }
+  
+  // Hypertension Services
+  function saveBPReading() {
+    const systolic = document.getElementById('systolic').value;
+    const diastolic = document.getElementById('diastolic').value;
+    const heartRate = document.getElementById('heart-rate').value;
+    
+    if (!systolic || !diastolic) {
+      toast('Please enter both systolic and diastolic readings');
+      return;
+    }
+    
+    const reading = {
+      id: crypto.randomUUID(),
+      systolic: parseInt(systolic),
+      diastolic: parseInt(diastolic),
+      heartRate: heartRate ? parseInt(heartRate) : null,
+      timestamp: new Date().toISOString()
+    };
+    
+    const readings = JSON.parse(localStorage.getItem('mn_bp_readings') || '[]');
+    readings.push(reading);
+    localStorage.setItem('mn_bp_readings', JSON.stringify(readings));
+    
+    // Update BP status
+    updateBPStatus(reading);
+    
+    document.getElementById('systolic').value = '';
+    document.getElementById('diastolic').value = '';
+    document.getElementById('heart-rate').value = '';
+    
+    toast(`BP reading saved: ${systolic}/${diastolic} mmHg`);
+  }
+  
+  function updateBPStatus(reading) {
+    const statusEl = document.getElementById('bp-status');
+    let status = '';
+    let color = '';
+    
+    if (reading.systolic < 120 && reading.diastolic < 80) {
+      status = 'Normal';
+      color = 'var(--success)';
+    } else if (reading.systolic < 130 && reading.diastolic < 80) {
+      status = 'Elevated';
+      color = 'var(--warning)';
+    } else if (reading.systolic < 140 || reading.diastolic < 90) {
+      status = 'High Blood Pressure Stage 1';
+      color = 'var(--danger)';
+    } else {
+      status = 'High Blood Pressure Stage 2';
+      color = 'var(--danger)';
+    }
+    
+    statusEl.innerHTML = `<strong style="color: ${color}">Status: ${status}</strong>`;
+  }
+  
+  // Arthritis Services
+  function savePainReading() {
+    const painLevel = document.getElementById('pain-level').value;
+    const affectedJoints = Array.from(document.getElementById('affected-joints').selectedOptions)
+      .map(option => option.value);
+    
+    if (affectedJoints.length === 0) {
+      toast('Please select at least one affected joint');
+      return;
+    }
+    
+    const reading = {
+      id: crypto.randomUUID(),
+      painLevel: parseInt(painLevel),
+      affectedJoints: affectedJoints,
+      timestamp: new Date().toISOString()
+    };
+    
+    const readings = JSON.parse(localStorage.getItem('mn_pain_readings') || '[]');
+    readings.push(reading);
+    localStorage.setItem('mn_pain_readings', JSON.stringify(readings));
+    
+    document.getElementById('affected-joints').selectedIndex = -1;
+    toast(`Pain logged: Level ${painLevel} in ${affectedJoints.join(', ')}`);
+  }
+  
+  function showExerciseVideo() {
+    window.open('https://www.youtube.com/results?search_query=arthritis+joint+exercises', '_blank');
+    toast('Opening exercise videos in new tab');
+  }
+  
+  // Thyroid Services
+  function saveThyroidMed() {
+    const medName = document.getElementById('thyroid-med').value;
+    const dose = document.getElementById('thyroid-dose').value;
+    const time = document.getElementById('thyroid-time').value;
+    
+    if (!medName || !dose || !time) {
+      toast('Please fill in all medication fields');
+      return;
+    }
+    
+    const medication = {
+      id: crypto.randomUUID(),
+      name: medName,
+      dose: dose,
+      time: time,
+      timestamp: new Date().toISOString()
+    };
+    
+    const medications = JSON.parse(localStorage.getItem('mn_thyroid_meds') || '[]');
+    medications.push(medication);
+    localStorage.setItem('mn_thyroid_meds', JSON.stringify(medications));
+    
+    document.getElementById('thyroid-med').value = '';
+    document.getElementById('thyroid-dose').value = '';
+    document.getElementById('thyroid-time').value = '';
+    
+    toast(`Medication reminder set: ${medName} ${dose} at ${time}`);
+  }
+  
+  function saveThyroidSymptoms() {
+    const energyLevel = document.getElementById('energy-level').value;
+    const weight = document.getElementById('weight').value;
+    
+    if (!weight) {
+      toast('Please enter your weight');
+      return;
+    }
+    
+    const symptoms = {
+      id: crypto.randomUUID(),
+      energyLevel: parseInt(energyLevel),
+      weight: parseFloat(weight),
+      timestamp: new Date().toISOString()
+    };
+    
+    const readings = JSON.parse(localStorage.getItem('mn_thyroid_symptoms') || '[]');
+    readings.push(symptoms);
+    localStorage.setItem('mn_thyroid_symptoms', JSON.stringify(readings));
+    
+    document.getElementById('weight').value = '';
+    toast(`Symptoms logged: Energy level ${energyLevel}, Weight ${weight}kg`);
+  }
+  
+  // Heart Disease Services
+  function saveHeartRate() {
+    const restingHR = document.getElementById('resting-hr').value;
+    const activityLevel = document.getElementById('activity-level').value;
+    
+    if (!restingHR) {
+      toast('Please enter your heart rate');
+      return;
+    }
+    
+    const reading = {
+      id: crypto.randomUUID(),
+      restingHR: parseInt(restingHR),
+      activityLevel: activityLevel,
+      timestamp: new Date().toISOString()
+    };
+    
+    const readings = JSON.parse(localStorage.getItem('mn_heart_rate') || '[]');
+    readings.push(reading);
+    localStorage.setItem('mn_heart_rate', JSON.stringify(readings));
+    
+    document.getElementById('resting-hr').value = '';
+    toast(`Heart rate recorded: ${restingHR} bpm during ${activityLevel}`);
+  }
+  
+  // Mental Health Services
+  function saveMoodEntry() {
+    const mood = document.getElementById('current-mood').value;
+    const stressLevel = document.getElementById('stress-level').value;
+    const notes = document.getElementById('mood-notes').value;
+    
+    const entry = {
+      id: crypto.randomUUID(),
+      mood: mood,
+      stressLevel: parseInt(stressLevel),
+      notes: notes,
+      timestamp: new Date().toISOString()
+    };
+    
+    const entries = JSON.parse(localStorage.getItem('mn_mood_entries') || '[]');
+    entries.push(entry);
+    localStorage.setItem('mn_mood_entries', JSON.stringify(entries));
+    
+    document.getElementById('mood-notes').value = '';
+    toast(`Mood entry saved: ${mood}, Stress level ${stressLevel}`);
+  }
+  
+  function startBreathingExercise() {
+    toast('Starting breathing exercise... Inhale for 4 seconds, hold for 4, exhale for 4. Repeat.');
+    // In a real app, this would start a guided breathing exercise
+  }
+  
+  // Allergies Services
+  function saveAllergyEntry() {
+    const allergen = document.getElementById('allergen').value;
+    const severity = document.getElementById('allergy-severity').value;
+    const symptoms = document.getElementById('allergy-symptoms').value;
+    
+    if (!allergen || !symptoms) {
+      toast('Please enter allergen and symptoms');
+      return;
+    }
+    
+    const entry = {
+      id: crypto.randomUUID(),
+      allergen: allergen,
+      severity: parseInt(severity),
+      symptoms: symptoms,
+      timestamp: new Date().toISOString()
+    };
+    
+    const entries = JSON.parse(localStorage.getItem('mn_allergy_entries') || '[]');
+    entries.push(entry);
+    localStorage.setItem('mn_allergy_entries', JSON.stringify(entries));
+    
+    document.getElementById('allergen').value = '';
+    document.getElementById('allergy-symptoms').value = '';
+    toast(`Allergy logged: ${allergen} (Severity: ${severity}/10)`);
+  }
+  
+  function setAllergyReminder() {
+    const antihistamine = document.getElementById('antihistamine').value;
+    const dose = document.getElementById('allergy-dose').value;
+    
+    if (!antihistamine || !dose) {
+      toast('Please enter medication name and dosage');
+      return;
+    }
+    
+    const reminder = {
+      id: crypto.randomUUID(),
+      medication: antihistamine,
+      dose: dose,
+      timestamp: new Date().toISOString()
+    };
+    
+    const reminders = JSON.parse(localStorage.getItem('mn_allergy_reminders') || '[]');
+    reminders.push(reminder);
+    localStorage.setItem('mn_allergy_reminders', JSON.stringify(reminders));
+    
+    document.getElementById('antihistamine').value = '';
+    document.getElementById('allergy-dose').value = '';
+    toast(`Allergy medication reminder set: ${antihistamine} ${dose}`);
+  }
+  
+  // Pregnancy Services
+  function savePrenatalAppt() {
+    const apptTime = document.getElementById('prenatal-appt').value;
+    const doctor = document.getElementById('prenatal-doctor').value;
+    const purpose = document.getElementById('appt-purpose').value;
+    
+    if (!apptTime || !doctor) {
+      toast('Please enter appointment time and doctor name');
+      return;
+    }
+    
+    const appointment = {
+      id: crypto.randomUUID(),
+      datetime: apptTime,
+      doctor: doctor,
+      purpose: purpose,
+      timestamp: new Date().toISOString()
+    };
+    
+    const appointments = JSON.parse(localStorage.getItem('mn_prenatal_appts') || '[]');
+    appointments.push(appointment);
+    localStorage.setItem('mn_prenatal_appts', JSON.stringify(appointments));
+    
+    document.getElementById('prenatal-appt').value = '';
+    document.getElementById('prenatal-doctor').value = '';
+    toast(`Prenatal appointment scheduled: ${purpose} with ${doctor}`);
+  }
+  
+  function savePrenatalData() {
+    const weight = document.getElementById('prenatal-weight').value;
+    const bp = document.getElementById('prenatal-bp').value;
+    const weeks = document.getElementById('pregnancy-weeks').value;
+    
+    if (!weight || !bp || !weeks) {
+      toast('Please fill in all fields');
+      return;
+    }
+    
+    const data = {
+      id: crypto.randomUUID(),
+      weight: parseFloat(weight),
+      bloodPressure: bp,
+      weeksPregnant: parseInt(weeks),
+      timestamp: new Date().toISOString()
+    };
+    
+    const readings = JSON.parse(localStorage.getItem('mn_prenatal_data') || '[]');
+    readings.push(data);
+    localStorage.setItem('mn_prenatal_data', JSON.stringify(readings));
+    
+    document.getElementById('prenatal-weight').value = '';
+    document.getElementById('prenatal-bp').value = '';
+    document.getElementById('pregnancy-weeks').value = '';
+    toast(`Prenatal data recorded: Week ${weeks}, Weight ${weight}kg, BP ${bp}`);
+  }
+  
+  // Quick Actions
+  function exportHealthData() {
+    const allData = {
+      glucose: JSON.parse(localStorage.getItem('mn_glucose_readings') || '[]'),
+      bloodPressure: JSON.parse(localStorage.getItem('mn_bp_readings') || '[]'),
+      pain: JSON.parse(localStorage.getItem('mn_pain_readings') || '[]'),
+      thyroid: JSON.parse(localStorage.getItem('mn_thyroid_symptoms') || '[]'),
+      heartRate: JSON.parse(localStorage.getItem('mn_heart_rate') || '[]'),
+      mood: JSON.parse(localStorage.getItem('mn_mood_entries') || '[]'),
+      allergies: JSON.parse(localStorage.getItem('mn_allergy_entries') || '[]'),
+      prenatal: JSON.parse(localStorage.getItem('mn_prenatal_data') || '[]')
+    };
+    
+    const dataStr = JSON.stringify(allData, null, 2);
+    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'health-data.json';
+    link.click();
+    URL.revokeObjectURL(url);
+    
+    toast('Health data exported successfully');
+  }
+  
+  function setMedicationReminders() {
+    toast('Medication reminders feature coming soon!');
+  }
+  
+  function viewHealthTrends() {
+    toast('Health trends visualization coming soon!');
+  }
+  
+  function shareWithDoctor() {
+    const allData = {
+      glucose: JSON.parse(localStorage.getItem('mn_glucose_readings') || '[]'),
+      bloodPressure: JSON.parse(localStorage.getItem('mn_bp_readings') || '[]'),
+      pain: JSON.parse(localStorage.getItem('mn_pain_readings') || '[]'),
+      thyroid: JSON.parse(localStorage.getItem('mn_thyroid_symptoms') || '[]'),
+      heartRate: JSON.parse(localStorage.getItem('mn_heart_rate') || '[]'),
+      mood: JSON.parse(localStorage.getItem('mn_mood_entries') || '[]'),
+      allergies: JSON.parse(localStorage.getItem('mn_allergy_entries') || '[]'),
+      prenatal: JSON.parse(localStorage.getItem('mn_prenatal_data') || '[]')
+    };
+    
+    let summary = 'Health Data Summary:\n\n';
+    Object.keys(allData).forEach(key => {
+      if (allData[key].length > 0) {
+        summary += `${key.toUpperCase()}: ${allData[key].length} entries\n`;
+      }
+    });
+    
+    if (navigator.share) {
+      navigator.share({
+        title: 'Health Data Summary',
+        text: summary
+      });
+    } else {
+      navigator.clipboard.writeText(summary).then(() => {
+        toast('Health summary copied to clipboard');
+      });
+    }
+  }
+  
+  // Initialize personalized dashboard when page loads
+  function initPersonalizedDashboard() {
+    const selectedConditions = JSON.parse(localStorage.getItem('mn_selected_conditions') || '[]');
+    if (selectedConditions.length > 0) {
+      showPersonalizedServices(selectedConditions);
+    }
+    
+    // Initialize range sliders
+    document.querySelectorAll('input[type="range"]').forEach(slider => {
+      slider.addEventListener('input', function() {
+        const valueSpan = document.getElementById(this.id.replace('-level', '-value').replace('-severity', '-severity-value'));
+        if (valueSpan) {
+          valueSpan.textContent = this.value;
+        }
+      });
+    });
+    
+    // Load existing data
+    updateGlucoseHistory();
+  }
+</script>
+</body>
+</html>
+</html>
